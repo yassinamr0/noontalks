@@ -128,6 +128,13 @@ export default function Register() {
       const updatedCodes = validCodes.filter((c: string) => c !== formData.code.toUpperCase());
       localStorage.setItem("validCodes", JSON.stringify(updatedCodes));
 
+      // Store user info in localStorage
+      const userData = {
+        ...formData,
+        ticketCode,
+      };
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+
       setQrCode(ticketCode);
       
       // Send email
