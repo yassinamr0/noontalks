@@ -11,6 +11,7 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Create scanner instance
     const qrScanner = new Html5QrcodeScanner(
       "qr-reader",
       { 
@@ -24,7 +25,7 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
         showZoomSliderIfSupported: true,
         defaultZoomValueIfSupported: 2
       },
-      /* verbose= */ true
+      /* verbose= */ false
     );
 
     const handleScanSuccess = (decodedText: string) => {
@@ -46,16 +47,17 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
       }
     };
 
+    // Render the scanner
     qrScanner.render(handleScanSuccess, handleScanError);
-
     setScanner(qrScanner);
 
+    // Cleanup function
     return () => {
       if (scanner) {
         scanner.clear();
       }
     };
-  }, [onScanSuccess]);
+  }, []); // Empty dependency array since we only want to create the scanner once
 
   return (
     <div className="w-full max-w-md mx-auto">
