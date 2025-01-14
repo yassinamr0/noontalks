@@ -23,8 +23,10 @@ export default function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const isAdmin = sessionStorage.getItem('isAdmin');
-    if (!isAdmin) {
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const adminToken = sessionStorage.getItem('adminToken');
+
+    if (!isAdmin || !adminToken) {
       navigate('/admin/login');
       return;
     }
@@ -40,6 +42,9 @@ export default function Admin() {
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
+      if (error instanceof Error && error.message.includes('Unauthorized')) {
+        handleLogout();
+      }
     } finally {
       setIsLoading(false);
     }
@@ -59,11 +64,15 @@ export default function Admin() {
     } catch (error) {
       console.error('Error adding codes:', error);
       toast.error('Failed to add codes');
+      if (error instanceof Error && error.message.includes('Unauthorized')) {
+        handleLogout();
+      }
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem('isAdmin');
+    sessionStorage.removeItem('adminToken');
     navigate('/admin/login');
   };
 

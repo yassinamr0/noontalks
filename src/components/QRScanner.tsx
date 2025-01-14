@@ -9,19 +9,26 @@ export default function QRScanner() {
   const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
-    const qrScanner = new Html5QrcodeScanner(
-      'qr-reader',
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
-    setScanner(qrScanner);
+    if (!scanner) {
+      const qrScanner = new Html5QrcodeScanner(
+        'qr-reader',
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          rememberLastUsedCamera: true,
+          aspectRatio: 1
+        },
+        false
+      );
+      setScanner(qrScanner);
+    }
 
     return () => {
       if (scanner) {
         scanner.clear();
       }
     };
-  }, []);
+  }, [scanner]);
 
   const startScanning = () => {
     if (!scanner) return;
@@ -34,17 +41,29 @@ export default function QRScanner() {
     if (!scanner) return;
 
     setIsScanning(false);
-    scanner.clear();
+    scanner.clear().then(() => {
+      const qrScanner = new Html5QrcodeScanner(
+        'qr-reader',
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          rememberLastUsedCamera: true,
+          aspectRatio: 1
+        },
+        false
+      );
+      setScanner(qrScanner);
+    });
   };
 
   const onScanSuccess = async (decodedText: string) => {
     try {
       const result = await scanTicket(decodedText);
       toast.success(`Welcome ${result.name}! Entry #${result.entries}`);
-      stopScanning();
+      await stopScanning();
     } catch (error: any) {
       toast.error(error.message || 'Invalid QR code');
-      stopScanning();
+      await stopScanning();
     }
   };
 

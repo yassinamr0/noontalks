@@ -1,5 +1,5 @@
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://ticketwave-backend.vercel.app/api'
+  ? 'https://noontalks.vercel.app/api'
   : 'http://localhost:5000/api';
 
 export const registerUser = async (userData: any) => {

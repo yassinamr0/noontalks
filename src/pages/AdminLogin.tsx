@@ -10,16 +10,21 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Hardcoded credentials for demo
-    if (username === 'admin' && password === 'noontalks2024') {
-      sessionStorage.setItem('isAdmin', 'true');
-      navigate('/admin');
-      toast.success('Welcome Admin!');
-    } else {
-      toast.error('Invalid credentials');
+    try {
+      // Hardcoded credentials for demo
+      if (username === 'admin' && password === 'noontalks2024') {
+        sessionStorage.setItem('isAdmin', 'true');
+        sessionStorage.setItem('adminToken', 'admin_token'); // Add this for extra security
+        navigate('/admin');
+        toast.success('Welcome Admin!');
+      } else {
+        throw new Error('Invalid credentials');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Login failed');
     }
   };
 
@@ -27,7 +32,14 @@ export default function AdminLogin() {
     <div className="container mx-auto flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-md">
         <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-center mb-6">Admin Login</h1>
+          <div className="text-center mb-6">
+            <img 
+              src="/logo-removebg-preview.png" 
+              alt="Logo" 
+              className="w-24 h-24 mx-auto mb-4"
+            />
+            <h1 className="text-2xl font-bold">Admin Login</h1>
+          </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
