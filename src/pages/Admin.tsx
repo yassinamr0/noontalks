@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import logo from '/logo.png';
+import noonLogo from '../assets/logo-removebg-preview.png';
 
 interface User {
   name: string;
@@ -23,6 +23,7 @@ interface User {
   code: string;
   registeredAt: string;
   qrCode: string;
+  validated?: boolean;
 }
 
 const ADMIN_CREDENTIALS = {
@@ -38,6 +39,7 @@ export default function Admin() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [generatedCode, setGeneratedCode] = useState("");
+  const [ticketCode, setTicketCode] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -131,6 +133,57 @@ export default function Admin() {
     setUserToDelete(null);
   };
 
+  const validateTicket = () => {
+    if (!ticketCode.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a ticket code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const user = users.find(u => u.qrCode === ticketCode);
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "Invalid ticket code",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (user.validated) {
+        toast({
+          title: "Warning",
+          description: "This ticket has already been validated",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const updatedUsers = users.map(u => 
+        u.qrCode === ticketCode ? { ...u, validated: true } : u
+      );
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+      setTicketCode("");
+
+      toast({
+        title: "Success",
+        description: `Ticket validated for ${user.name}`,
+      });
+    } catch (error) {
+      console.error("Error validating ticket:", error);
+      toast({
+        title: "Error",
+        description: "Failed to validate ticket",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -138,7 +191,7 @@ export default function Admin() {
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
             <div className="text-center mb-8">
-              <img src={logo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+              <img src={noonLogo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
               <h2 className="text-3xl font-bold text-purple-600">Admin Login</h2>
             </div>
             <form onSubmit={handleLogin} className="space-y-6">
@@ -182,7 +235,7 @@ export default function Admin() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
-            <img src={logo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+            <img src={noonLogo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
             <h2 className="text-3xl font-bold text-purple-600">Admin Dashboard</h2>
           </div>
 
@@ -200,6 +253,24 @@ export default function Admin() {
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 Generate Code
+              </Button>
+            </div>
+          </div>
+
+          <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4">Validate Ticket</h3>
+            <div className="flex gap-4 items-center">
+              <Input
+                value={ticketCode}
+                onChange={(e) => setTicketCode(e.target.value)}
+                className="bg-white"
+                placeholder="Enter ticket code"
+              />
+              <Button
+                onClick={validateTicket}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Validate
               </Button>
             </div>
           </div>
@@ -222,6 +293,9 @@ export default function Admin() {
                     Code
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Registered At
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -238,6 +312,11 @@ export default function Admin() {
                       {user.phone || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{user.code}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded text-sm ${user.validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {user.validated ? 'Validated' : 'Not Validated'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {new Date(user.registeredAt).toLocaleString()}
                     </td>
