@@ -292,17 +292,19 @@ export default function Admin() {
               {!showScanner ? (
                 <Button
                   onClick={() => setShowScanner(true)}
-                  className="bg-[#542c6a] hover:bg-opacity-90 text-white"
+                  className="bg-[#542c6a] hover:bg-opacity-90 text-white w-full md:w-auto"
                 >
                   Start Scanner
                 </Button>
               ) : (
                 <>
-                  <QRScanner onScanSuccess={handleScanSuccess} />
+                  <div className="w-full">
+                    <QRScanner onScanSuccess={handleScanSuccess} />
+                  </div>
                   <Button
                     onClick={() => setShowScanner(false)}
                     variant="outline"
-                    className="mt-4"
+                    className="mt-4 w-full md:w-auto"
                   >
                     Stop Scanner
                   </Button>
