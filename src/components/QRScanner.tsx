@@ -1,111 +1,69 @@
-import { useEffect, useState } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
-import { useToast } from "@/hooks/use-toast";
-import { scanTicket } from "@/lib/api";
+import { useEffect, useState } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Button } from '@/components/ui/button';
+import { scanTicket } from '@/lib/api';
+import { toast } from 'sonner';
 
-interface Props {
-  onScanSuccess: (code: string, user: any) => void;
-}
-
-export default function QRScanner({ onScanSuccess }: Props) {
-  const [selectedCamera, setSelectedCamera] = useState<string>("");
-  const [cameras, setCameras] = useState<Array<{ id: string; label: string }>>([]);
-  const { toast } = useToast();
+export default function QRScanner() {
+  const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
-    // Get available cameras
-    Html5QrcodeScanner.getCameras()
-      .then((devices) => {
-        setCameras(
-          devices.map((device) => ({
-            id: device.id,
-            label: device.label || `Camera ${device.id}`,
-          }))
-        );
-        // Default to the back camera if available
-        const backCamera = devices.find((device) =>
-          device.label.toLowerCase().includes("back")
-        );
-        if (backCamera) {
-          setSelectedCamera(backCamera.id);
-        } else if (devices.length > 0) {
-          setSelectedCamera(devices[0].id);
-        }
-      })
-      .catch((err) => {
-        console.error("Error getting cameras:", err);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!selectedCamera) return;
-
-    const config = {
-      fps: 10,
-      qrbox: { width: 250, height: 250 },
-      videoConstraints: {
-        deviceId: selectedCamera,
-        facingMode: "environment",
-      },
-    };
-
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      config,
-      /* verbose= */ false
+    const qrScanner = new Html5QrcodeScanner(
+      'qr-reader',
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      false
     );
-
-    let isScanning = true;
-
-    scanner.render(
-      async (decodedText) => {
-        if (!isScanning) return;
-        isScanning = false;
-
-        try {
-          const user = await scanTicket(decodedText);
-          onScanSuccess(decodedText, user);
-        } catch (err: any) {
-          console.error("Error processing QR code:", err);
-          toast({
-            title: "Error",
-            description: err.message || "Invalid QR code",
-            variant: "destructive",
-          });
-          isScanning = true;
-        }
-      },
-      (error) => {
-        // Ignore errors during scanning
-      }
-    );
+    setScanner(qrScanner);
 
     return () => {
-      isScanning = false;
-      scanner.clear();
+      if (scanner) {
+        scanner.clear();
+      }
     };
-  }, [selectedCamera, onScanSuccess, toast]);
+  }, []);
 
-  const handleCameraChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCamera(e.target.value);
+  const startScanning = () => {
+    if (!scanner) return;
+
+    setIsScanning(true);
+    scanner.render(onScanSuccess, onScanError);
+  };
+
+  const stopScanning = () => {
+    if (!scanner) return;
+
+    setIsScanning(false);
+    scanner.clear();
+  };
+
+  const onScanSuccess = async (decodedText: string) => {
+    try {
+      const result = await scanTicket(decodedText);
+      toast.success(`Welcome ${result.name}! Entry #${result.entries}`);
+      stopScanning();
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid QR code');
+      stopScanning();
+    }
+  };
+
+  const onScanError = (error: any) => {
+    console.warn(error);
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="mb-4">
-        <select
-          value={selectedCamera}
-          onChange={handleCameraChange}
-          className="w-full p-2 border rounded"
-        >
-          {cameras.map((camera) => (
-            <option key={camera.id} value={camera.id}>
-              {camera.label}
-            </option>
-          ))}
-        </select>
+    <div className="mt-4">
+      <div id="qr-reader" className="w-full max-w-lg mx-auto"></div>
+      <div className="mt-4 flex justify-center gap-4">
+        {!isScanning ? (
+          <Button onClick={startScanning}>Start Scanning</Button>
+        ) : (
+          <Button variant="destructive" onClick={stopScanning}>
+            Stop Scanning
+          </Button>
+        )}
       </div>
-      <div id="reader" className="w-full"></div>
     </div>
   );
 }

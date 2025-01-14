@@ -1,101 +1,78 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import Navbar from "@/components/Navbar";
-import QRCode from "@/components/QRCode";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import TicketDisplay from '@/components/TicketDisplay';
+import { Button } from '@/components/ui/button';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface UserData {
   name: string;
   email: string;
-  phone?: string;
   code: string;
 }
 
 export default function Ticket() {
-  const [user, setUser] = useState<UserData | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
-    const currentUser = localStorage.getItem("currentUser");
-    if (!currentUser) {
-      toast({
-        title: "Error",
-        description: "Please login first",
-        variant: "destructive",
-      });
-      navigate("/login");
+    const user = sessionStorage.getItem('user');
+    if (!user) {
+      navigate('/register');
       return;
     }
+    setUserData(JSON.parse(user));
+  }, [navigate]);
+
+  const downloadTicket = async () => {
+    const ticketElement = document.getElementById('ticket-container');
+    if (!ticketElement || !userData) return;
 
     try {
-      const userData = JSON.parse(currentUser);
-      setUser(userData);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      toast({
-        title: "Error",
-        description: "Invalid user data",
-        variant: "destructive",
+      const canvas = await html2canvas(ticketElement);
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
       });
-      navigate("/login");
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`${userData.name}-ticket.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
     }
-  }, [navigate, toast]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    navigate("/login");
   };
 
-  if (!user) {
-    return null;
+  if (!userData) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
-          <div className="text-center mb-6">
-            <img 
-              src="/logo-removebg-preview.png" 
-              alt="Noon Talks Logo" 
-              className="mx-auto h-16 w-auto mb-4"
-            />
-            <h2 className="text-2xl font-bold text-[#542c6a] mb-2">Your Ticket</h2>
-            <p className="text-sm text-gray-600">{user.name}</p>
-          </div>
+    <div className="container mx-auto p-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold mb-4">Your Ticket</h1>
+          <p className="text-gray-600">
+            Your ticket has been sent to your email. You can also download it below.
+          </p>
+        </div>
 
-          <div className="mb-6">
-            <QRCode value={user.code} />
-          </div>
+        <div id="ticket-container" className="mb-8">
+          <TicketDisplay
+            code={userData.code}
+            name={userData.name}
+          />
+        </div>
 
-          <div className="space-y-2 mb-6">
-            <p className="text-sm text-gray-600">
-              <span className="font-medium">Email:</span> {user.email}
-            </p>
-            {user.phone && (
-              <p className="text-sm text-gray-600">
-                <span className="font-medium">Phone:</span> {user.phone}
-              </p>
-            )}
-            <p className="text-sm text-gray-600">
-              <span className="font-medium">Code:</span> {user.code}
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600 text-center font-medium">
-              Make sure to screenshot your ticket!
-            </p>
-            <Button
-              onClick={handleLogout}
-              className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
-            >
-              Logout
-            </Button>
-          </div>
+        <div className="flex justify-center gap-4">
+          <Button onClick={downloadTicket}>
+            Download Ticket
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
         </div>
       </div>
     </div>
