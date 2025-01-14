@@ -32,7 +32,9 @@ const ADMIN_CREDENTIALS = {
 };
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem("adminLoggedIn") === "true";
+  });
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [users, setUsers] = useState<User[]>([]);
@@ -49,15 +51,21 @@ export default function Admin() {
 
   const loadUsers = () => {
     try {
-      const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-      setUsers(storedUsers);
+      const storedUsers = localStorage.getItem("users");
+      if (!storedUsers) {
+        setUsers([]);
+        return;
+      }
+      const parsedUsers = JSON.parse(storedUsers);
+      setUsers(Array.isArray(parsedUsers) ? parsedUsers : []);
     } catch (error) {
       console.error("Error loading users:", error);
       toast({
         title: "Error",
-        description: "Failed to load users",
+        description: "Failed to load users. Please refresh the page.",
         variant: "destructive",
       });
+      setUsers([]);
     }
   };
 
@@ -68,6 +76,7 @@ export default function Admin() {
       password === ADMIN_CREDENTIALS.password
     ) {
       setIsLoggedIn(true);
+      localStorage.setItem("adminLoggedIn", "true");
       toast({
         title: "Success",
         description: "Logged in successfully",
@@ -79,6 +88,13 @@ export default function Admin() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem("adminLoggedIn");
+    setUsername("");
+    setPassword("");
   };
 
   const generateCode = () => {
@@ -225,7 +241,16 @@ export default function Admin() {
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#542c6a]">Admin Dashboard</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-3xl font-bold text-[#542c6a]">Admin Dashboard</h2>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="text-[#542c6a] border-[#542c6a] hover:bg-[#542c6a] hover:text-white"
+              >
+                Logout
+              </Button>
+            </div>
           </div>
 
           <div className="mb-8 p-6 bg-gray-50 rounded-lg">
