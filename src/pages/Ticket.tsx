@@ -10,7 +10,6 @@ interface UserData {
   email: string;
   phone?: string;
   code: string;
-  ticketCode: string;
 }
 
 export default function Ticket() {
@@ -69,11 +68,7 @@ export default function Ticket() {
           </div>
 
           <div className="mb-6">
-            <QRCode value={JSON.stringify({
-              ticketCode: user.ticketCode,
-              code: user.code,
-              name: user.name
-            })} />
+            <QRCode value={user.code} />
           </div>
 
           <div className="space-y-2 mb-6">

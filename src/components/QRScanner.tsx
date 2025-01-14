@@ -65,18 +65,19 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
           config,
           async (decodedText) => {
             try {
-              // Parse QR code data
-              const qrData = JSON.parse(decodedText);
-              
               // Get user data from storage
               const users = JSON.parse(localStorage.getItem("users") || "[]");
-              const user = users.find((u: any) => u.ticketCode === qrData.ticketCode);
+              const user = users.find((u: any) => u.code === decodedText);
               
               if (user) {
-                onScanSuccess(qrData.ticketCode, user);
+                // Update user entries
+                user.entries = (user.entries || 0) + 1;
+                localStorage.setItem("users", JSON.stringify(users));
+                
+                onScanSuccess(decodedText, user);
                 toast({
                   title: "Success",
-                  description: `Welcome ${qrData.name}!`,
+                  description: `Welcome ${user.name}!`,
                 });
               } else {
                 toast({

@@ -3,12 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import QRCode from "@/components/QRCode";
-import TicketDisplay from "@/components/TicketDisplay";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import emailjs from '@emailjs/browser';
+import { useNavigate } from "react-router-dom";
 
-interface RegistrationData {
+interface FormData {
   name: string;
   email: string;
   phone: string;
@@ -16,80 +15,30 @@ interface RegistrationData {
 }
 
 export default function Register() {
-  const [isRegistering, setIsRegistering] = useState(true);
-  const [formData, setFormData] = useState<RegistrationData>({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     phone: "",
     code: "",
   });
-  const [error, setError] = useState("");
   const [qrCode, setQrCode] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const sendTicketEmail = async (ticketData: RegistrationData) => {
-    try {
-      const templateParams = {
-        to_name: ticketData.name,
-        to_email: ticketData.email,
-        code: ticketData.code
-      };
-
-      const response = await emailjs.send(
-        'service_83pqvw9',
-        'template_ratkdvb',
-        templateParams,
-        'xLhzDzuiphtF8mgEj'
-      );
-
-      console.log('Email sent successfully:', response);
-      toast({
-        title: "Registration Complete!",
-        description: "Check your email for login details.",
-      });
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast({
-        title: "Email Sending Failed",
-        description: "Please save your registration code: " + ticketData.code,
-        variant: "destructive",
-      });
-      throw error;
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.code) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      // Get existing users and registration codes
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      // Validate registration code
       const validCodes = JSON.parse(localStorage.getItem("validCodes") || "[]");
-      
-      // Check if email already exists
-      if (users.some((user: RegistrationData) => user.email === formData.email)) {
-        toast({
-          title: "Error",
-          description: "This email is already registered",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Check if code exists and is valid
       if (!validCodes.includes(formData.code.toUpperCase())) {
         toast({
           title: "Error",
@@ -99,51 +48,38 @@ export default function Register() {
         return;
       }
 
-      // Check if code is already used
-      if (users.some((user: any) => user.code === formData.code.toUpperCase())) {
-        toast({
-          title: "Error",
-          description: "This registration code has already been used",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Generate unique ticket code
-      const ticketCode = Math.random().toString(36).substring(2, 15);
-
-      // Add user to users list with uppercase code
-      const newUser = {
-        ...formData,
+      // Create new user
+      const user = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
         code: formData.code.toUpperCase(),
-        ticketCode,
         registeredAt: new Date().toISOString(),
-        entries: 0,
+        entries: 0
       };
-      users.push(newUser);
+
+      // Save to users list
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      users.push(user);
       localStorage.setItem("users", JSON.stringify(users));
 
       // Remove used code
-      const updatedCodes = validCodes.filter((c: string) => c !== formData.code.toUpperCase());
+      const updatedCodes = validCodes.filter(
+        (c: string) => c !== formData.code.toUpperCase()
+      );
       localStorage.setItem("validCodes", JSON.stringify(updatedCodes));
 
       // Store current user
-      localStorage.setItem("currentUser", JSON.stringify(newUser));
+      localStorage.setItem("currentUser", JSON.stringify(user));
 
-      // Set QR code
-      setQrCode(JSON.stringify({
-        ticketCode,
-        code: formData.code.toUpperCase(),
-        name: formData.name
-      }));
-      
-      // Send email
-      await sendTicketEmail(newUser);
-      
       toast({
         title: "Success",
         description: "Registration successful!",
       });
+
+      // Navigate to ticket page
+      navigate("/ticket");
+
     } catch (error) {
       console.error("Error during registration:", error);
       toast({
@@ -153,35 +89,6 @@ export default function Register() {
       });
     }
   };
-
-  if (qrCode) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <div className="container mx-auto px-4 py-12">
-          {qrCode && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-                <h3 className="text-lg font-semibold mb-4 text-center">Your Ticket</h3>
-                <div className="mb-4">
-                  <QRCode value={qrCode} />
-                </div>
-                <p className="text-sm text-gray-600 text-center mb-4">
-                  Make sure to screenshot your ticket!
-                </p>
-                <Button
-                  onClick={() => setQrCode("")}
-                  className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white">
