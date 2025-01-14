@@ -53,7 +53,7 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
       }
 
       // Add QR code
-      pdf.addImage(imgData, 'PNG', 80, 160, 40, 40);
+      pdf.addImage(imgData, 'PNG', 80, 160, 52, 52);
 
       // Add footer
       pdf.setFontSize(10);
@@ -77,7 +77,7 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-lg shadow-lg">
           <QRCodeCanvas
             value={value}
-            size={75}
+            size={98}
             level="H"
             includeMargin={true}
           />
