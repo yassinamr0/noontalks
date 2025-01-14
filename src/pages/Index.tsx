@@ -8,7 +8,7 @@ export default function Index() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="mb-6">
-            <span className="text-4xl md:text-6xl font-bold text-white block mb-2">Welcome to</span>
+            <span className="text-4xl md:text-6xl text-white block mb-2">Welcome to</span>
             <span className="text-5xl md:text-7xl font-bold text-white font-serif italic">Noon Talks</span>
           </h1>
           <p className="text-lg md:text-xl text-white mb-12">
