@@ -61,7 +61,8 @@ export default function Admin() {
       const parsedUsers = JSON.parse(storedUsers);
       const usersWithEntries = parsedUsers.map((user: User) => ({
         ...user,
-        entries: user.entries || 0
+        entries: user.entries || 0,
+        attended: user.attended || false
       }));
       setUsers(usersWithEntries);
     } catch (error) {
@@ -160,11 +161,15 @@ export default function Admin() {
   };
 
   const handleScanSuccess = (decodedText: string, userData: any) => {
-    // Update attendance
+    // Update attendance and entries
     const users = JSON.parse(localStorage.getItem("users") || "[]");
     const updatedUsers = users.map((user: any) => {
       if (user.ticketCode === decodedText) {
-        return { ...user, attended: true };
+        return { 
+          ...user, 
+          attended: true,
+          entries: (user.entries || 0) + 1
+        };
       }
       return user;
     });

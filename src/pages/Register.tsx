@@ -112,28 +112,22 @@ export default function Register() {
       // Generate unique ticket code
       const ticketCode = Math.random().toString(36).substring(2, 15);
 
-      // Create new user with uppercase code
+      // Add user to users list
       const newUser = {
         ...formData,
-        code: formData.code.toUpperCase(),
         ticketCode,
+        registeredAt: new Date().toISOString(),
         entries: 0,
-        registeredAt: new Date().toISOString()
       };
-
-      // Save user
-      localStorage.setItem("users", JSON.stringify([...users, newUser]));
+      users.push(newUser);
+      localStorage.setItem("users", JSON.stringify(users));
 
       // Remove used code
       const updatedCodes = validCodes.filter((c: string) => c !== formData.code.toUpperCase());
       localStorage.setItem("validCodes", JSON.stringify(updatedCodes));
 
-      // Store user info in localStorage
-      const userData = {
-        ...formData,
-        ticketCode,
-      };
-      localStorage.setItem("currentUser", JSON.stringify(userData));
+      // Store current user
+      localStorage.setItem("currentUser", JSON.stringify(newUser));
 
       setQrCode(ticketCode);
       
