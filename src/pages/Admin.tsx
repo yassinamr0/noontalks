@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { QRScanner } from "@/components/QRScanner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +39,6 @@ export default function Admin() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [generatedCode, setGeneratedCode] = useState("");
-  const [ticketCode, setTicketCode] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -132,16 +132,7 @@ export default function Admin() {
     setUserToDelete(null);
   };
 
-  const validateTicket = () => {
-    if (!ticketCode.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a ticket code",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleScanSuccess = (ticketCode: string) => {
     try {
       const user = users.find(u => u.qrCode === ticketCode);
       if (!user) {
@@ -167,7 +158,6 @@ export default function Admin() {
       );
       localStorage.setItem("users", JSON.stringify(updatedUsers));
       setUsers(updatedUsers);
-      setTicketCode("");
 
       toast({
         title: "Success",
@@ -185,13 +175,13 @@ export default function Admin() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#542c6a] to-[#c701a9]">
         <Navbar />
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
             <div className="text-center mb-8">
               <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-              <h2 className="text-3xl font-bold text-purple-600">Admin Login</h2>
+              <h2 className="text-3xl font-bold text-[#542c6a]">Admin Login</h2>
             </div>
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
@@ -217,7 +207,7 @@ export default function Admin() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-gradient-to-r from-[#542c6a] to-[#c701a9] hover:opacity-90 text-white"
               >
                 Login
               </Button>
@@ -229,27 +219,27 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#542c6a] to-[#c701a9]">
       <Navbar />
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-            <h2 className="text-3xl font-bold text-purple-600">Admin Dashboard</h2>
+            <h2 className="text-3xl font-bold text-[#542c6a]">Admin Dashboard</h2>
           </div>
 
           <div className="mb-8 p-6 bg-gray-50 rounded-lg">
             <h3 className="text-xl font-semibold mb-4">Generate Registration Code</h3>
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-center flex-wrap">
               <Input
                 value={generatedCode}
                 readOnly
-                className="bg-white"
+                className="bg-white flex-1 min-w-[200px]"
                 placeholder="Generated code will appear here"
               />
               <Button
                 onClick={generateCode}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-gradient-to-r from-[#542c6a] to-[#c701a9] hover:opacity-90 text-white whitespace-nowrap"
               >
                 Generate Code
               </Button>
@@ -257,80 +247,70 @@ export default function Admin() {
           </div>
 
           <div className="mb-8 p-6 bg-gray-50 rounded-lg">
-            <h3 className="text-xl font-semibold mb-4">Validate Ticket</h3>
-            <div className="flex gap-4 items-center">
-              <Input
-                value={ticketCode}
-                onChange={(e) => setTicketCode(e.target.value)}
-                className="bg-white"
-                placeholder="Enter ticket code"
-              />
-              <Button
-                onClick={validateTicket}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Validate
-              </Button>
-            </div>
+            <h3 className="text-xl font-semibold mb-4">Scan Ticket QR Code</h3>
+            <QRScanner onScanSuccess={handleScanSuccess} />
           </div>
 
           <div className="overflow-x-auto">
             <h3 className="text-xl font-semibold mb-4">Registered Users</h3>
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Registered At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {users.map((user, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {user.phone || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.code}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded text-sm ${user.validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                        {user.validated ? 'Validated' : 'Not Validated'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(user.registeredAt).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDeleteUser(user)}
-                      >
-                        Remove
-                      </Button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead className="bg-[#3a1f49] text-white">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Code
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Registered At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {users.map((user, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {user.phone || "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.code}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className={`px-2 py-1 rounded text-sm ${user.validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          {user.validated ? 'Validated' : 'Not Validated'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {new Date(user.registeredAt).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDeleteUser(user)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Remove
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
