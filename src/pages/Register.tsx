@@ -88,7 +88,7 @@ export default function Register() {
           return;
         }
 
-        // Generate QR code value
+        // Generate QR code
         const newQrCode = `NOON-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         setQrCode(newQrCode);
 
@@ -108,12 +108,42 @@ export default function Register() {
           title: "Success",
           description: "Registration successful!",
         });
-
       } catch (error) {
         console.error("Error during registration:", error);
         toast({
           title: "Error",
           description: "Registration failed. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Login logic
+      if (!formData.email || !formData.code) {
+        setError("Please enter your email and code");
+        return;
+      }
+
+      try {
+        const users = JSON.parse(localStorage.getItem("users") || "[]");
+        const user = users.find((u: RegistrationData & { qrCode: string }) => 
+          u.email === formData.email && u.code === formData.code
+        );
+
+        if (!user) {
+          setError("Invalid email or code");
+          return;
+        }
+
+        setQrCode(user.qrCode);
+        toast({
+          title: "Success",
+          description: "Login successful!",
+        });
+      } catch (error) {
+        console.error("Error during login:", error);
+        toast({
+          title: "Error",
+          description: "Login failed. Please try again.",
           variant: "destructive",
         });
       }
@@ -146,19 +176,25 @@ export default function Register() {
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#542c6a]">Register for Event</h2>
+            <h2 className="text-3xl font-bold text-[#542c6a]">
+              {isRegistering ? "Register for Event" : "Login"}
+            </h2>
           </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="mt-1"
-                required
-              />
-            </div>
+            {isRegistering && (
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="mt-1"
+                  required
+                />
+              </div>
+            )}
+
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -170,16 +206,20 @@ export default function Register() {
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="phone">Phone (Optional)</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="mt-1"
-              />
-            </div>
+
+            {isRegistering && (
+              <div>
+                <Label htmlFor="phone">Phone (Optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+            )}
+
             <div>
               <Label htmlFor="code">Registration Code</Label>
               <Input
@@ -190,14 +230,35 @@ export default function Register() {
                 required
               />
             </div>
+
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
             )}
+
             <Button
               type="submit"
               className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
             >
-              Register
+              {isRegistering ? "Register" : "Login"}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-4"
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setFormData({
+                  name: "",
+                  email: "",
+                  phone: "",
+                  code: "",
+                });
+                setError("");
+                setQrCode("");
+              }}
+            >
+              {isRegistering ? "Already registered? Login" : "Need to register?"}
             </Button>
           </form>
         </div>
