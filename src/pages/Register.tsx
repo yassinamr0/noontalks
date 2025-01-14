@@ -87,11 +87,11 @@ export default function Register() {
           return;
         }
 
-        // Generate QR code
-        const newQrCode = `NOON-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // Generate a permanent QR code based on email and code
+        const newQrCode = `NOON-${Buffer.from(formData.email + formData.code).toString('base64')}`;
         setQrCode(newQrCode);
 
-        // Save user
+        // Save user with permanent QR code
         const newUser = {
           ...formData,
           registeredAt: new Date().toISOString(),
@@ -100,7 +100,7 @@ export default function Register() {
 
         localStorage.setItem("users", JSON.stringify([...users, newUser]));
 
-        // Send email with ticket
+        // Send email with login details
         await sendTicketEmail(formData);
 
         toast({
