@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { QRCode } from "./QRCode";
-import logo from '/logo-removebg-preview.png';
+import noonLogo from '../assets/logo-removebg-preview.png';
 
 interface TicketDisplayProps {
   ticketId: string;
@@ -18,7 +18,7 @@ const TicketDisplay = ({ ticketId, userDetails }: TicketDisplayProps) => {
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-8">
       <div className="text-center mb-8">
-        <img src={logo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+        <img src={noonLogo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
         <h2 className="text-3xl font-bold text-purple-600">Your Event Ticket</h2>
       </div>
 

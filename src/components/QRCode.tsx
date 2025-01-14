@@ -2,6 +2,8 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { Button } from './ui/button';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import noonLogo from '../assets/logo-removebg-preview.png';
+import ticketBackground from '../assets/ticketdesign.png';
 
 interface QRCodeProps {
   value: string;
@@ -28,7 +30,7 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
       });
 
       // Add logo
-      pdf.addImage('/logo-removebg-preview.png', 'PNG', 75, 20, 60, 60);
+      pdf.addImage(noonLogo, 'PNG', 75, 20, 60, 60);
 
       // Add title
       pdf.setFontSize(24);
@@ -65,7 +67,7 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
     <div className="flex flex-col items-center gap-4">
       <div id="qr-code-container" className="relative w-[600px] h-[300px]">
         <img 
-          src="/ticketdesign.png" 
+          src={ticketBackground}
           alt="Ticket Background" 
           className="w-full h-full object-contain"
         />
