@@ -60,19 +60,29 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.code || !formData.name || !formData.email) {
+
+    if (!formData.name || !formData.email || !formData.code) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const storedUsers = localStorage.getItem("users") || "[]";
-      const users = JSON.parse(storedUsers);
+      // Get existing users
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      
+      // Check if email already exists
+      if (users.some((user: RegistrationData) => user.email === formData.email)) {
+        toast({
+          title: "Error",
+          description: "This email is already registered",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Check if code is valid
       const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
@@ -99,14 +109,13 @@ export default function Register() {
       const ticketCode = Math.random().toString(36).substring(2, 15);
 
       const newUser = {
-        name: formData.name,
-        email: formData.email,
-        code: formData.code,
+        ...formData,
         ticketCode,
         entries: 0,
         registeredAt: new Date().toISOString()
       };
 
+      // Save user
       localStorage.setItem("users", JSON.stringify([...users, newUser]));
 
       // Remove used code
@@ -119,10 +128,10 @@ export default function Register() {
         description: "Registration successful!",
       });
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Error during registration:", error);
       toast({
         title: "Error",
-        description: "Failed to register. Please try again.",
+        description: "Registration failed. Please try again.",
         variant: "destructive",
       });
     }

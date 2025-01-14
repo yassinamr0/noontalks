@@ -1,16 +1,29 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/Navbar";
 import { QRScanner } from "@/components/QRScanner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface User {
   name: string;
   email: string;
+  phone?: string;
   code: string;
-  ticketCode: string;
-  entries: number;
   registeredAt: string;
+  entries: number;
+  ticketCode: string;
 }
 
 const ADMIN_CREDENTIALS = {
@@ -19,21 +32,27 @@ const ADMIN_CREDENTIALS = {
 };
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    try {
+      return localStorage.getItem("adminLoggedIn") === "true";
+    } catch {
+      return false;
+    }
+  });
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [users, setUsers] = useState<User[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [generatedCode, setGeneratedCode] = useState("");
   const [showScanner, setShowScanner] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem("adminLoggedIn") === "true";
-    setIsLoggedIn(loggedIn);
-    if (loggedIn) {
+    if (isLoggedIn) {
       loadUsers();
     }
-  }, []);
+  }, [isLoggedIn]);
 
   const loadUsers = () => {
     try {
@@ -48,7 +67,7 @@ export default function Admin() {
       console.error("Error loading users:", error);
       toast({
         title: "Error",
-        description: "Failed to load users",
+        description: "Failed to load users. Please refresh the page.",
         variant: "destructive",
       });
     }
@@ -60,8 +79,12 @@ export default function Admin() {
       username === ADMIN_CREDENTIALS.username &&
       password === ADMIN_CREDENTIALS.password
     ) {
-      localStorage.setItem("adminLoggedIn", "true");
       setIsLoggedIn(true);
+      localStorage.setItem("adminLoggedIn", "true");
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+      });
       loadUsers();
     } else {
       toast({
@@ -73,32 +96,62 @@ export default function Admin() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("adminLoggedIn");
     setIsLoggedIn(false);
+    localStorage.removeItem("adminLoggedIn");
     setUsername("");
     setPassword("");
+    setShowScanner(false);
   };
 
-  const generateRegistrationCode = () => {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const existingCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
-    localStorage.setItem("registrationCodes", JSON.stringify([...existingCodes, code]));
-    
-    toast({
-      title: "Success",
-      description: `New registration code generated: ${code}`,
-    });
+  const generateCode = () => {
+    try {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      setGeneratedCode(code);
+      
+      const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
+      localStorage.setItem("registrationCodes", JSON.stringify([...registrationCodes, code]));
+      
+      toast({
+        title: "Success",
+        description: `New code generated: ${code}`,
+      });
+    } catch (error) {
+      console.error("Error generating code:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate registration code",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteUser = (code: string) => {
-    const updatedUsers = users.filter(user => user.code !== code);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-    setUsers(updatedUsers);
-    setShowDeleteConfirm(null);
-    toast({
-      title: "Success",
-      description: "User deleted successfully",
-    });
+  const handleDeleteUser = (user: User) => {
+    setUserToDelete(user);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (!userToDelete) return;
+
+    try {
+      const updatedUsers = users.filter(u => u.code !== userToDelete.code);
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
+    }
+
+    setShowDeleteDialog(false);
+    setUserToDelete(null);
   };
 
   const handleScanSuccess = (ticketCode: string) => {
@@ -132,49 +185,40 @@ export default function Admin() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            Admin Login
-          </h2>
-        </div>
-
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className="min-h-screen bg-white">
+        <Navbar />
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
+            <div className="text-center mb-8">
+              <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+              <h2 className="text-3xl font-bold text-[#542c6a]">Admin Login</h2>
+            </div>
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Username
-                </label>
+                <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
-                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  className="mt-1"
                   required
                 />
               </div>
-
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1"
                   required
                 />
               </div>
-
-              <Button type="submit" className="w-full bg-[#542c6a] hover:bg-opacity-90">
+              <Button
+                type="submit"
+                className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
+              >
                 Login
               </Button>
             </form>
@@ -185,99 +229,124 @@ export default function Admin() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-[#542c6a]">Admin Dashboard</h1>
-        <Button onClick={handleLogout} variant="outline">
-          Logout
-        </Button>
-      </div>
-
-      <div className="grid gap-8">
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="text-xl font-semibold mb-4">Generate Registration Code</h3>
-          <Button
-            onClick={generateRegistrationCode}
-            className="bg-[#542c6a] hover:bg-opacity-90"
-          >
-            Generate Code
-          </Button>
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="text-xl font-semibold mb-4">Scan QR Code</h3>
-          <div className="flex flex-col items-center gap-4">
-            {!showScanner ? (
-              <Button
-                onClick={() => setShowScanner(true)}
-                className="bg-[#542c6a] hover:bg-opacity-90"
-              >
-                Start Scanner
-              </Button>
-            ) : (
-              <>
-                <QRScanner onScanSuccess={handleScanSuccess} />
-                <Button
-                  onClick={() => setShowScanner(false)}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  Stop Scanner
-                </Button>
-              </>
-            )}
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
+          <div className="flex justify-between items-center mb-8">
+            <div className="text-center">
+              <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+              <h2 className="text-3xl font-bold text-[#542c6a]">Admin Dashboard</h2>
+            </div>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="text-[#542c6a] border-[#542c6a] hover:bg-[#542c6a] hover:text-white"
+            >
+              Logout
+            </Button>
           </div>
-        </div>
 
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="text-xl font-semibold mb-4">Registered Users</h3>
-          <div className="grid gap-4">
-            {users.map((user) => (
-              <div
-                key={user.code}
-                className="bg-gray-50 p-4 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+          <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4">Generate Registration Code</h3>
+            <div className="flex gap-4 items-center flex-wrap">
+              <Input
+                value={generatedCode}
+                readOnly
+                className="bg-white flex-1 min-w-[200px]"
+                placeholder="Generated code will appear here"
+              />
+              <Button
+                onClick={generateCode}
+                className="bg-[#542c6a] hover:bg-opacity-90 text-white whitespace-nowrap"
               >
-                <div>
-                  <h4 className="font-medium">{user.name}</h4>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-sm text-gray-600">Entries: {user.entries}</p>
-                  <p className="text-sm text-gray-600">
-                    Registered: {new Date(user.registeredAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                  {showDeleteConfirm === user.code ? (
-                    <>
+                Generate Code
+              </Button>
+            </div>
+          </div>
+
+          <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+            <h3 className="text-xl font-semibold mb-4">Scan Ticket QR Code</h3>
+            <div className="flex flex-col items-center gap-4">
+              {!showScanner ? (
+                <Button
+                  onClick={() => setShowScanner(true)}
+                  className="bg-[#542c6a] hover:bg-opacity-90 text-white"
+                >
+                  Start Scanner
+                </Button>
+              ) : (
+                <>
+                  <QRScanner onScanSuccess={handleScanSuccess} />
+                  <Button
+                    onClick={() => setShowScanner(false)}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Stop Scanner
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <h3 className="text-xl font-semibold mb-4">Registered Users</h3>
+            <table className="min-w-full bg-white">
+              <thead className="bg-[#3a1f49] text-white">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Code</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Entries</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Registered At</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {users.map((user, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{user.code}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{user.entries || 0}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {new Date(user.registeredAt).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Button
                         variant="destructive"
-                        onClick={() => handleDeleteUser(user.code)}
-                        className="w-full md:w-auto"
+                        onClick={() => handleDeleteUser(user)}
+                        className="bg-red-600 hover:bg-red-700"
                       >
-                        Confirm Delete
+                        Remove
                       </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowDeleteConfirm(null)}
-                        className="w-full md:w-auto"
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      variant="destructive"
-                      onClick={() => setShowDeleteConfirm(user.code)}
-                      className="w-full md:w-auto"
-                    >
-                      Delete User
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user
+              and their ticket.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Yes, delete user
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
