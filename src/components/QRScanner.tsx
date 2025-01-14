@@ -18,22 +18,35 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
         showTorchButtonIfSupported: true,
+        formatsToSupport: [ 'QR_CODE' ],
+        rememberLastUsedCamera: true,
+        supportedScanTypes: [ 'camera' ],
+        showZoomSliderIfSupported: true,
+        defaultZoomValueIfSupported: 2
       },
-      false
+      /* verbose= */ true
     );
 
-    qrScanner.render(
-      (decodedText) => {
-        onScanSuccess(decodedText);
+    const handleScanSuccess = (decodedText: string) => {
+      onScanSuccess(decodedText);
+      toast({
+        title: "Success",
+        description: "QR Code scanned successfully",
+      });
+    };
+
+    const handleScanError = (error: any) => {
+      console.error("QR Code scanning error:", error);
+      if (error.name === "NotAllowedError") {
         toast({
-          title: "Success",
-          description: "QR Code scanned successfully",
+          title: "Camera Access Required",
+          description: "Please allow camera access to scan QR codes",
+          variant: "destructive",
         });
-      },
-      (error) => {
-        console.error("QR Code scanning error:", error);
       }
-    );
+    };
+
+    qrScanner.render(handleScanSuccess, handleScanError);
 
     setScanner(qrScanner);
 
@@ -47,6 +60,9 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
   return (
     <div className="w-full max-w-md mx-auto">
       <div id="qr-reader" className="rounded-lg overflow-hidden shadow-lg"></div>
+      <p className="text-sm text-gray-500 mt-2 text-center">
+        If the camera doesn't start, please check your browser permissions and allow camera access
+      </p>
     </div>
   );
 }
