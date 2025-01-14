@@ -19,10 +19,10 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
           alt="Ticket Background" 
           className="absolute inset-0 w-full h-full object-contain"
         />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-[0.02cm]">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-[50px] -ml-[45px]">
           <QRCodeCanvas
             value={value}
-            size={124}
+            size={799}
             level="H"
             includeMargin={false}
           />
