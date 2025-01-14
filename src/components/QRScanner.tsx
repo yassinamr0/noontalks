@@ -1,16 +1,54 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface QRScannerProps {
-  onScanSuccess: (decodedText: string) => void;
+  onScanSuccess: (decodedText: string, userData?: any) => void;
+}
+
+interface Camera {
+  id: string;
+  label: string;
 }
 
 export function QRScanner({ onScanSuccess }: QRScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [cameras, setCameras] = useState<Camera[]>([]);
+  const [selectedCamera, setSelectedCamera] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
+    const getCameras = async () => {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        setCameras(devices.map(device => ({
+          id: device.id,
+          label: device.label || `Camera ${device.id}`
+        })));
+        
+        // Try to select back camera by default
+        const backCamera = devices.find(device => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('rear')
+        );
+        if (backCamera) {
+          setSelectedCamera(backCamera.id);
+        } else if (devices.length > 0) {
+          setSelectedCamera(devices[0].id);
+        }
+      } catch (err) {
+        console.error("Error getting cameras:", err);
+      }
+    };
+
+    getCameras();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCamera) return;
+
     const config = {
       fps: 10,
       qrbox: { width: 250, height: 250 },
@@ -22,31 +60,39 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
 
     const startScanning = async () => {
       try {
-        // Get available cameras
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length) {
-          // Try to use the back camera first (usually better for QR scanning)
-          const backCamera = devices.find(device => 
-            device.label.toLowerCase().includes('back') || 
-            device.label.toLowerCase().includes('rear') ||
-            device.label.includes('2')  // Often main camera has 2 in name
-          );
-          
-          const cameraId = backCamera ? backCamera.id : devices[0].id;
-
-          await html5QrCode.start(
-            { deviceId: cameraId },
-            config,
-            (decodedText) => {
-              onScanSuccess(decodedText);
+        await html5QrCode.start(
+          selectedCamera,
+          config,
+          async (decodedText) => {
+            try {
+              // Get user data from storage
+              const users = JSON.parse(localStorage.getItem("users") || "[]");
+              const user = users.find((u: any) => u.ticketCode === decodedText);
+              
+              if (user) {
+                onScanSuccess(decodedText, user);
+                toast({
+                  title: "Success",
+                  description: `Welcome ${user.name}!`,
+                });
+              } else {
+                toast({
+                  title: "Error",
+                  description: "Invalid ticket code",
+                  variant: "destructive",
+                });
+              }
+            } catch (err) {
+              console.error("Error processing QR code:", err);
               toast({
-                title: "Success",
-                description: "QR Code scanned successfully",
+                title: "Error",
+                description: "Error processing QR code",
+                variant: "destructive",
               });
-            },
-            () => {} // Ignore failures
-          );
-        }
+            }
+          },
+          () => {} // Ignore failures
+        );
       } catch (err) {
         console.error("Error starting scanner:", err);
         toast({
@@ -66,10 +112,24 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
           .catch(err => console.error("Error stopping scanner:", err));
       }
     };
-  }, [onScanSuccess, toast]);
+  }, [selectedCamera, onScanSuccess, toast]);
 
   return (
     <div className="w-full max-w-md mx-auto">
+      <div className="mb-4">
+        <Select value={selectedCamera} onValueChange={setSelectedCamera}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a camera" />
+          </SelectTrigger>
+          <SelectContent>
+            {cameras.map((camera) => (
+              <SelectItem key={camera.id} value={camera.id}>
+                {camera.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div id="reader" className="rounded-lg overflow-hidden shadow-lg w-full" style={{
         maxWidth: '100%',
         height: '300px'

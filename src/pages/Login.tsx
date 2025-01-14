@@ -35,7 +35,7 @@ export default function Login() {
       
       // Find user with matching code (case insensitive)
       const user = users.find((u: any) => 
-        u.code.toLowerCase() === formData.code.toLowerCase()
+        u.code.toUpperCase() === formData.code.toUpperCase()
       );
 
       if (!user) {
@@ -70,16 +70,20 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
-          <div className="text-center mb-8">
-            <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#542c6a]">Login</h2>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
+          <div className="text-center mb-6">
+            <img 
+              src="/logo-removebg-preview.png" 
+              alt="Noon Talks Logo" 
+              className="mx-auto h-16 w-auto mb-4"
+            />
+            <h2 className="text-2xl font-bold text-[#542c6a]">Login</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="code">Registration Code</Label>
+              <Label htmlFor="code" className="text-sm font-medium">Registration Code</Label>
               <Input
                 id="code"
                 name="code"
@@ -93,10 +97,19 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
+              className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white mt-6"
             >
               Login
             </Button>
+
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-600">
+                Don't have a code?{" "}
+                <a href="/register" className="text-[#542c6a] hover:underline">
+                  Register here
+                </a>
+              </p>
+            </div>
           </form>
         </div>
       </div>

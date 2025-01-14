@@ -24,6 +24,7 @@ interface User {
   registeredAt: string;
   entries: number;
   ticketCode: string;
+  attended?: boolean;
 }
 
 const ADMIN_CREDENTIALS = {
@@ -158,33 +159,19 @@ export default function Admin() {
     setUserToDelete(null);
   };
 
-  const handleScanSuccess = (ticketCode: string) => {
-    const updatedUsers = users.map(user => {
-      if (user.ticketCode === ticketCode) {
-        return {
-          ...user,
-          entries: (user.entries || 0) + 1
-        };
+  const handleScanSuccess = (decodedText: string, userData: any) => {
+    // Update attendance
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    const updatedUsers = users.map((user: any) => {
+      if (user.ticketCode === decodedText) {
+        return { ...user, attended: true };
       }
       return user;
     });
-    
     localStorage.setItem("users", JSON.stringify(updatedUsers));
-    setUsers(updatedUsers);
     
-    const user = updatedUsers.find(u => u.ticketCode === ticketCode);
-    if (user) {
-      toast({
-        title: "Success",
-        description: `${user.name} - Entry #${user.entries}`,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Invalid ticket code",
-        variant: "destructive",
-      });
-    }
+    // Update UI
+    loadUsers();
   };
 
   if (!isLoggedIn) {
