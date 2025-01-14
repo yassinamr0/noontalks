@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Html5QrcodeScanner, Html5QrcodeScannerState } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useToast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
@@ -7,102 +7,77 @@ interface QRScannerProps {
 }
 
 export function QRScanner({ onScanSuccess }: QRScannerProps) {
-  const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null);
+  const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
   const { toast } = useToast();
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   useEffect(() => {
-    // Check if we're on a mobile device
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    setScanner(html5QrCode);
 
-    // Request camera permission first
-    navigator.mediaDevices.getUserMedia({ 
-      video: {
-        facingMode: isMobile ? "environment" : "user",
-        width: { ideal: isMobile ? 1280 : 640 },
-        height: { ideal: isMobile ? 720 : 480 }
+    return () => {
+      if (html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
       }
-    })
-    .then(() => {
-      // Create scanner after permission is granted
-      const qrScanner = new Html5QrcodeScanner(
-        "qr-reader",
-        { 
-          fps: 10,
-          qrbox: isMobile ? { width: 250, height: 250 } : { width: 200, height: 200 },
-          aspectRatio: isMobile ? 16/9 : 4/3,
-          showTorchButtonIfSupported: true,
-          formatsToSupport: ['QR_CODE'],
-          videoConstraints: {
-            facingMode: isMobile ? "environment" : "user",
-            width: { ideal: isMobile ? 1280 : 640 },
-            height: { ideal: isMobile ? 720 : 480 }
-          }
-        },
-        /* verbose= */ false
-      );
+    };
+  }, []);
 
-      qrScanner.render(
-        (decodedText: string) => {
+  const startScanning = async () => {
+    if (!scanner) return;
+
+    try {
+      await scanner.start(
+        { facingMode: isMobile ? "environment" : "user" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
           onScanSuccess(decodedText);
           toast({
             title: "Success",
             description: "QR Code scanned successfully",
           });
         },
-        (error: any) => {
-          console.error("QR Code scanning error:", error);
-          if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
-            toast({
-              title: "Camera Access Required",
-              description: isMobile 
-                ? "Please allow camera access in your device settings to scan QR codes"
-                : "Please allow camera access in your browser settings to scan QR codes",
-              variant: "destructive",
-            });
-          }
+        (error) => {
+          console.log(error);
         }
       );
-
-      setScanner(qrScanner);
-    })
-    .catch((error) => {
-      console.error("Camera permission error:", error);
+    } catch (err) {
+      console.error("Scanner error:", err);
       toast({
-        title: "Camera Access Required",
-        description: isMobile 
-          ? "Please allow camera access in your device settings to scan QR codes"
-          : "Please allow camera access in your browser settings to scan QR codes",
+        title: "Camera Error",
+        description: "Please make sure camera permissions are granted and try again",
         variant: "destructive",
       });
-    });
+    }
+  };
 
+  useEffect(() => {
+    startScanning();
+    
     return () => {
-      if (scanner) {
-        try {
-          if (scanner.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
-            scanner.clear();
-          }
-        } catch (error) {
-          console.error("Error cleaning up scanner:", error);
-        }
+      if (scanner?.isScanning) {
+        scanner.stop().catch(console.error);
       }
     };
-  }, [onScanSuccess, toast]);
-
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  }, [scanner]);
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div id="qr-reader" className="rounded-lg overflow-hidden shadow-lg" style={{
-        maxWidth: '100%',
-        height: isMobile ? '300px' : '250px'
-      }}></div>
+      <div 
+        id="qr-reader" 
+        className="rounded-lg overflow-hidden shadow-lg"
+        style={{
+          maxWidth: '100%',
+          height: isMobile ? '300px' : '250px'
+        }}
+      />
       <p className="text-sm text-gray-500 mt-2 text-center">
-        {isMobile ? (
-          "Please allow camera access when prompted. Make sure you're using your device's back camera."
-        ) : (
-          "If the camera doesn't start, please check your browser permissions and allow camera access."
-        )}
+        {isMobile 
+          ? "Make sure you're using your device's back camera"
+          : "Position the QR code in the center of the camera view"
+        }
       </p>
     </div>
   );

@@ -60,92 +60,71 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setQrCode(""); // Reset QR code
+    
+    if (!formData.code || !formData.name || !formData.email) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    if (isRegistering) {
-      // Registration logic
-      if (!formData.name || !formData.email || !formData.code) {
-        setError("Please fill in all required fields");
+    try {
+      const storedUsers = localStorage.getItem("users") || "[]";
+      const users = JSON.parse(storedUsers);
+
+      // Check if code is valid
+      const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
+      if (!registrationCodes.includes(formData.code)) {
+        toast({
+          title: "Error",
+          description: "Invalid registration code",
+          variant: "destructive",
+        });
         return;
       }
 
-      try {
-        // Get existing users
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
-        
-        // Check if email already exists
-        if (users.some((user: RegistrationData) => user.email === formData.email)) {
-          setError("This email is already registered");
-          return;
-        }
-
-        // Check if code is valid
-        const validCodes = JSON.parse(localStorage.getItem("validCodes") || "[]");
-        if (!validCodes.includes(formData.code)) {
-          setError("Invalid registration code");
-          return;
-        }
-
-        // Generate a permanent QR code based on email and code
-        const newQrCode = `NOON-${Buffer.from(formData.email + formData.code).toString('base64')}`;
-        setQrCode(newQrCode);
-
-        // Save user with permanent QR code
-        const newUser = {
-          ...formData,
-          registeredAt: new Date().toISOString(),
-          qrCode: newQrCode,
-        };
-
-        localStorage.setItem("users", JSON.stringify([...users, newUser]));
-
-        // Send email with login details
-        await sendTicketEmail(formData);
-
-        toast({
-          title: "Success",
-          description: "Registration successful!",
-        });
-      } catch (error) {
-        console.error("Error during registration:", error);
+      // Check if code is already used
+      if (users.some((user: any) => user.code === formData.code)) {
         toast({
           title: "Error",
-          description: "Registration failed. Please try again.",
+          description: "This registration code has already been used",
           variant: "destructive",
         });
-      }
-    } else {
-      // Login logic
-      if (!formData.email || !formData.code) {
-        setError("Please enter your email and code");
         return;
       }
 
-      try {
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
-        const user = users.find((u: RegistrationData & { qrCode: string }) => 
-          u.email === formData.email && u.code === formData.code
-        );
+      // Generate unique ticket code
+      const ticketCode = Math.random().toString(36).substring(2, 15);
 
-        if (!user) {
-          setError("Invalid email or code");
-          return;
-        }
+      const newUser = {
+        name: formData.name,
+        email: formData.email,
+        code: formData.code,
+        ticketCode,
+        entries: 0,
+        registeredAt: new Date().toISOString()
+      };
 
-        setQrCode(user.qrCode);
-        toast({
-          title: "Success",
-          description: "Login successful!",
-        });
-      } catch (error) {
-        console.error("Error during login:", error);
-        toast({
-          title: "Error",
-          description: "Login failed. Please try again.",
-          variant: "destructive",
-        });
-      }
+      localStorage.setItem("users", JSON.stringify([...users, newUser]));
+
+      // Remove used code
+      const updatedCodes = registrationCodes.filter((c: string) => c !== formData.code);
+      localStorage.setItem("registrationCodes", JSON.stringify(updatedCodes));
+
+      setQrCode(ticketCode);
+      toast({
+        title: "Success",
+        description: "Registration successful!",
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to register. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -176,23 +155,21 @@ export default function Register() {
           <div className="text-center mb-8">
             <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
             <h2 className="text-3xl font-bold text-[#542c6a]">
-              {isRegistering ? "Register for Event" : "Login"}
+              Register for Event
             </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {isRegistering && (
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="mt-1"
-                  required
-                />
-              </div>
-            )}
+            <div>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="mt-1"
+                required
+              />
+            </div>
 
             <div>
               <Label htmlFor="email">Email</Label>
@@ -205,19 +182,6 @@ export default function Register() {
                 required
               />
             </div>
-
-            {isRegistering && (
-              <div>
-                <Label htmlFor="phone">Phone (Optional)</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-            )}
 
             <div>
               <Label htmlFor="code">Registration Code</Label>
@@ -238,26 +202,7 @@ export default function Register() {
               type="submit"
               className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
             >
-              {isRegistering ? "Register" : "Login"}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-4"
-              onClick={() => {
-                setIsRegistering(!isRegistering);
-                setFormData({
-                  name: "",
-                  email: "",
-                  phone: "",
-                  code: "",
-                });
-                setError("");
-                setQrCode("");
-              }}
-            >
-              {isRegistering ? "Already registered? Login" : "Need to register?"}
+              Register
             </Button>
           </form>
         </div>

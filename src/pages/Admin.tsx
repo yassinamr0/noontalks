@@ -24,6 +24,8 @@ interface User {
   registeredAt: string;
   qrCode: string;
   validated?: boolean;
+  entries: number;
+  ticketCode: string;
 }
 
 const ADMIN_CREDENTIALS = {
@@ -46,6 +48,7 @@ export default function Admin() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [generatedCode, setGeneratedCode] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,7 +61,12 @@ export default function Admin() {
     try {
       const storedUsers = localStorage.getItem("users") || "[]";
       const parsedUsers = JSON.parse(storedUsers);
-      setUsers(Array.isArray(parsedUsers) ? parsedUsers : []);
+      // Ensure each user has an entries field
+      const usersWithEntries = parsedUsers.map((user: User) => ({
+        ...user,
+        entries: user.entries || 0
+      }));
+      setUsers(Array.isArray(usersWithEntries) ? usersWithEntries : []);
     } catch (error) {
       console.error("Error loading users:", error);
       toast({
@@ -134,71 +142,41 @@ export default function Admin() {
     }
   };
 
-  const handleDeleteUser = (user: User) => {
-    setUserToDelete(user);
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    if (!userToDelete) return;
-
-    try {
-      const updatedUsers = users.filter(u => u.email !== userToDelete.email);
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-      toast({
-        title: "Success",
-        description: "User deleted successfully",
-      });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user",
-        variant: "destructive",
-      });
-    }
-
-    setShowDeleteDialog(false);
-    setUserToDelete(null);
+  const handleDeleteUser = (ticketCode: string) => {
+    const updatedUsers = users.filter(user => user.ticketCode !== ticketCode);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    setUsers(updatedUsers);
+    setShowDeleteConfirm(null);
+    toast({
+      title: "User Deleted",
+      description: "User has been removed successfully",
+    });
   };
 
   const handleScanSuccess = (ticketCode: string) => {
-    try {
-      const user = users.find(u => u.qrCode === ticketCode);
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "Invalid ticket code",
-          variant: "destructive",
-        });
-        return;
+    const updatedUsers = users.map(user => {
+      if (user.ticketCode === ticketCode) {
+        return {
+          ...user,
+          entries: (user.entries || 0) + 1
+        };
       }
-
-      if (user.validated) {
-        toast({
-          title: "Warning",
-          description: "This ticket has already been validated",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const updatedUsers = users.map(u => 
-        u.qrCode === ticketCode ? { ...u, validated: true } : u
-      );
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-
+      return user;
+    });
+    
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    setUsers(updatedUsers);
+    
+    const user = updatedUsers.find(u => u.ticketCode === ticketCode);
+    if (user) {
       toast({
-        title: "Success",
-        description: `Ticket validated for ${user.name}`,
+        title: "Valid Ticket",
+        description: `${user.name} - Entry #${user.entries}`,
       });
-    } catch (error) {
-      console.error("Error validating ticket:", error);
+    } else {
       toast({
-        title: "Error",
-        description: "Failed to validate ticket",
+        title: "Invalid Ticket",
+        description: "This ticket code is not registered",
         variant: "destructive",
       });
     }
@@ -315,47 +293,47 @@ export default function Admin() {
 
           <div className="overflow-x-auto">
             <h3 className="text-xl font-semibold mb-4">Registered Users</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-[#3a1f49] text-white">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Phone</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Code</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Registered At</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {users.map((user, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.phone || "-"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.code}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 py-1 rounded text-sm ${user.validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                          {user.validated ? 'Validated' : 'Not Validated'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {new Date(user.registeredAt).toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+            <div className="grid gap-4">
+              {users.map((user) => (
+                <div
+                  key={user.ticketCode}
+                  className="bg-white p-4 rounded-lg shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                >
+                  <div>
+                    <h4 className="font-medium">{user.name}</h4>
+                    <p className="text-sm text-gray-600">{user.email}</p>
+                    <p className="text-sm text-gray-600">Entries: {user.entries || 0}</p>
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    {showDeleteConfirm === user.ticketCode ? (
+                      <>
                         <Button
                           variant="destructive"
-                          onClick={() => handleDeleteUser(user)}
-                          className="bg-red-600 hover:bg-red-700"
+                          onClick={() => handleDeleteUser(user.ticketCode)}
+                          className="w-full md:w-auto"
                         >
-                          Remove
+                          Confirm Delete
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowDeleteConfirm(null)}
+                          className="w-full md:w-auto"
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        variant="destructive"
+                        onClick={() => setShowDeleteConfirm(user.ticketCode)}
+                        className="w-full md:w-auto"
+                      >
+                        Delete User
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
