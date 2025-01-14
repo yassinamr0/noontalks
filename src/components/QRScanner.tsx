@@ -1,75 +1,118 @@
-import { useEffect, useState } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
-import { toast } from 'sonner';
-import { scanTicket } from '@/lib/api';
+import { useState, useEffect } from "react";
+import { Html5Qrcode } from "html5-qrcode";
+import { Button } from "@/components/ui/button";
+import { scanTicket } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function QRScanner() {
-  const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [html5QrCode, setHtml5QrCode] = useState<Html5Qrcode | null>(null);
+  const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
+  const [selectedCamera, setSelectedCamera] = useState("");
 
   useEffect(() => {
-    const qrScanner = new Html5QrcodeScanner(
-      "qr-reader",
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
-    setScanner(qrScanner);
+    const qrCode = new Html5Qrcode("reader");
+    setHtml5QrCode(qrCode);
+
+    Html5Qrcode.getCameras()
+      .then((devices) => {
+        const availableCameras = devices.map((device) => ({
+          id: device.id,
+          label: device.label,
+        }));
+        setCameras(availableCameras);
+        // Automatically select back camera if available
+        const backCamera = availableCameras.find((camera) =>
+          camera.label.toLowerCase().includes("back")
+        );
+        if (backCamera) {
+          setSelectedCamera(backCamera.id);
+        } else if (availableCameras.length > 0) {
+          setSelectedCamera(availableCameras[0].id);
+        }
+      })
+      .catch((err) => {
+        console.error("Error getting cameras", err);
+      });
 
     return () => {
-      if (scanner) {
-        scanner.clear();
+      if (html5QrCode?.isScanning) {
+        html5QrCode.stop();
       }
     };
   }, []);
 
-  const startScanning = () => {
-    if (!scanner) return;
+  const startScanning = async () => {
+    if (!html5QrCode || !selectedCamera) return;
 
-    setIsScanning(true);
-    scanner.render(onScanSuccess, onScanError);
-  };
-
-  const stopScanning = () => {
-    if (!scanner) return;
-
-    setIsScanning(false);
-    scanner.clear();
-  };
-
-  const onScanSuccess = async (decodedText: string) => {
     try {
-      const result = await scanTicket(decodedText);
-      toast.success(`Welcome ${result.name}! Entry #${result.entries}`);
-      stopScanning();
-    } catch (error: any) {
-      toast.error(error.message || 'Invalid QR code');
-      stopScanning();
+      await html5QrCode.start(
+        selectedCamera,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        async (decodedText) => {
+          try {
+            const result = await scanTicket(decodedText);
+            if (result.isValid) {
+              toast.success("Valid ticket!");
+            } else {
+              toast.error("Invalid ticket!");
+            }
+          } catch (error) {
+            toast.error("Error scanning ticket");
+          }
+        },
+        () => {}
+      );
+      setIsScanning(true);
+    } catch (err) {
+      console.error("Error starting camera:", err);
+      toast.error("Error starting camera");
     }
   };
 
-  const onScanError = (error: any) => {
-    console.warn(error);
+  const stopScanning = async () => {
+    if (html5QrCode?.isScanning) {
+      await html5QrCode.stop();
+      setIsScanning(false);
+    }
+  };
+
+  const handleCameraChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (html5QrCode?.isScanning) {
+      stopScanning().then(() => {
+        setSelectedCamera(e.target.value);
+      });
+    } else {
+      setSelectedCamera(e.target.value);
+    }
   };
 
   return (
-    <div className="mt-6">
-      <div id="qr-reader" className="w-full max-w-lg mx-auto"></div>
-      <div className="mt-4 flex justify-center">
-        {!isScanning ? (
-          <button
-            onClick={startScanning}
-            className="bg-[#542c6a] text-white px-4 py-2 rounded-lg hover:bg-opacity-90"
-          >
-            Start Scanning
-          </button>
-        ) : (
-          <button
-            onClick={stopScanning}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-opacity-90"
-          >
-            Stop Scanning
-          </button>
-        )}
+    <div className="space-y-4">
+      <div id="reader" className="w-full max-w-[500px] mx-auto"></div>
+      
+      <div className="flex flex-col gap-4 items-center">
+        <Button
+          onClick={isScanning ? stopScanning : startScanning}
+          className="bg-[#542c6a] hover:bg-opacity-90"
+        >
+          {isScanning ? "Stop Scanner" : "Start Scanner"}
+        </Button>
+
+        <select
+          value={selectedCamera}
+          onChange={handleCameraChange}
+          className="w-full max-w-[300px] p-2 rounded border border-gray-300"
+        >
+          {cameras.map((camera) => (
+            <option key={camera.id} value={camera.id}>
+              {camera.label}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
