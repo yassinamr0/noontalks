@@ -19,12 +19,13 @@ export default function Admin() {
   const [codes, setCodes] = useState<string>('');
   const [showScanner, setShowScanner] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const isAdmin = sessionStorage.getItem('isAdmin');
     if (!isAdmin) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
 
@@ -33,11 +34,14 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     try {
+      setIsLoading(true);
       const fetchedUsers = await getUsers();
       setUsers(fetchedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,7 +64,7 @@ export default function Admin() {
 
   const handleLogout = () => {
     sessionStorage.removeItem('isAdmin');
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const formatDate = (dateString: string) => {
@@ -72,6 +76,14 @@ export default function Admin() {
       minute: '2-digit'
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -128,6 +140,13 @@ export default function Admin() {
                     <td className="p-2">{formatDate(user.registeredAt)}</td>
                   </tr>
                 ))}
+                {users.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center p-4">
+                      No users registered yet
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
