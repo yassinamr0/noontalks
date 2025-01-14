@@ -53,7 +53,7 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
       }
 
       // Add QR code
-      pdf.addImage(imgData, 'PNG', 65, 160, 80, 80);
+      pdf.addImage(imgData, 'PNG', 80, 160, 40, 40);
 
       // Add footer
       pdf.setFontSize(10);
@@ -68,16 +68,16 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div id="qr-code-container" className="relative w-[600px] h-[300px]">
+      <div id="qr-code-container" className="relative w-[1200px] h-[600px]">
         <img 
           src="/ticketdesign.png" 
           alt="Ticket Background" 
           className="absolute inset-0 w-full h-full object-contain"
         />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-lg">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-lg shadow-lg">
           <QRCodeCanvas
             value={value}
-            size={150}
+            size={75}
             level="H"
             includeMargin={true}
           />
