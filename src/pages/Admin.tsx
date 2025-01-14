@@ -108,8 +108,12 @@ export default function Admin() {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       setGeneratedCode(code);
       
-      const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
-      localStorage.setItem("registrationCodes", JSON.stringify([...registrationCodes, code]));
+      // Initialize or get existing codes
+      const existingCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
+      const updatedCodes = [...existingCodes, code];
+      
+      // Save to localStorage
+      localStorage.setItem("registrationCodes", JSON.stringify(updatedCodes));
       
       toast({
         title: "Success",
@@ -297,6 +301,7 @@ export default function Admin() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Phone</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Code</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Entries</th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Registered At</th>
@@ -308,6 +313,7 @@ export default function Admin() {
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{user.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">{user.phone || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{user.code}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">{user.entries || 0}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">

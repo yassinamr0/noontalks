@@ -11,7 +11,7 @@ import emailjs from '@emailjs/browser';
 interface RegistrationData {
   name: string;
   email: string;
-  phone?: string;
+  phone: string;
   code: string;
 }
 
@@ -26,6 +26,10 @@ export default function Register() {
   const [error, setError] = useState("");
   const [qrCode, setQrCode] = useState("");
   const { toast } = useToast();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const sendTicketEmail = async (ticketData: RegistrationData) => {
     try {
@@ -71,8 +75,9 @@ export default function Register() {
     }
 
     try {
-      // Get existing users
+      // Get existing users and registration codes
       const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
       
       // Check if email already exists
       if (users.some((user: RegistrationData) => user.email === formData.email)) {
@@ -84,9 +89,8 @@ export default function Register() {
         return;
       }
 
-      // Check if code is valid
-      const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
-      if (!registrationCodes.includes(formData.code)) {
+      // Check if code exists and is valid
+      if (!registrationCodes.includes(formData.code.toUpperCase())) {
         toast({
           title: "Error",
           description: "Invalid registration code",
@@ -96,7 +100,7 @@ export default function Register() {
       }
 
       // Check if code is already used
-      if (users.some((user: any) => user.code === formData.code)) {
+      if (users.some((user: any) => user.code === formData.code.toUpperCase())) {
         toast({
           title: "Error",
           description: "This registration code has already been used",
@@ -108,8 +112,10 @@ export default function Register() {
       // Generate unique ticket code
       const ticketCode = Math.random().toString(36).substring(2, 15);
 
+      // Create new user with uppercase code
       const newUser = {
         ...formData,
+        code: formData.code.toUpperCase(),
         ticketCode,
         entries: 0,
         registeredAt: new Date().toISOString()
@@ -119,10 +125,14 @@ export default function Register() {
       localStorage.setItem("users", JSON.stringify([...users, newUser]));
 
       // Remove used code
-      const updatedCodes = registrationCodes.filter((c: string) => c !== formData.code);
+      const updatedCodes = registrationCodes.filter((c: string) => c !== formData.code.toUpperCase());
       localStorage.setItem("registrationCodes", JSON.stringify(updatedCodes));
 
       setQrCode(ticketCode);
+      
+      // Send email
+      await sendTicketEmail(newUser);
+      
       toast({
         title: "Success",
         description: "Registration successful!",
@@ -170,13 +180,15 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
+                name="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={handleInputChange}
                 className="mt-1"
                 required
+                autoComplete="name"
               />
             </div>
 
@@ -184,11 +196,26 @@ export default function Register() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={handleInputChange}
                 className="mt-1"
                 required
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone Number (Optional)</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="mt-1"
+                autoComplete="tel"
               />
             </div>
 
@@ -196,10 +223,12 @@ export default function Register() {
               <Label htmlFor="code">Registration Code</Label>
               <Input
                 id="code"
+                name="code"
                 value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                onChange={handleInputChange}
                 className="mt-1"
                 required
+                autoComplete="off"
               />
             </div>
 
