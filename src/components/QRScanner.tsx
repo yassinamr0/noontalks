@@ -1,49 +1,40 @@
-import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
-import { useToast } from '@/hooks/use-toast';
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect, useState } from "react";
+import { Html5QrcodeScanner } from "html5-qrcode";
+import { useToast } from "@/hooks/use-toast";
+import { scanTicket } from "@/lib/api";
 
-interface QRScannerProps {
-  onScanSuccess: (decodedText: string, userData?: any) => void;
+interface Props {
+  onScanSuccess: (code: string, user: any) => void;
 }
 
-interface Camera {
-  id: string;
-  label: string;
-}
-
-export function QRScanner({ onScanSuccess }: QRScannerProps) {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const [cameras, setCameras] = useState<Camera[]>([]);
+export default function QRScanner({ onScanSuccess }: Props) {
   const [selectedCamera, setSelectedCamera] = useState<string>("");
+  const [cameras, setCameras] = useState<Array<{ id: string; label: string }>>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    const getCameras = async () => {
-      try {
-        const devices = await Html5Qrcode.getCameras();
-        setCameras(devices.map(device => ({
-          id: device.id,
-          label: device.label || `Camera ${device.id}`
-        })));
-        
-        // Try to select back camera by default
-        const backCamera = devices.find(device => 
-          device.label.toLowerCase().includes('back') || 
-          device.label.toLowerCase().includes('rear')
+    // Get available cameras
+    Html5QrcodeScanner.getCameras()
+      .then((devices) => {
+        setCameras(
+          devices.map((device) => ({
+            id: device.id,
+            label: device.label || `Camera ${device.id}`,
+          }))
+        );
+        // Default to the back camera if available
+        const backCamera = devices.find((device) =>
+          device.label.toLowerCase().includes("back")
         );
         if (backCamera) {
           setSelectedCamera(backCamera.id);
         } else if (devices.length > 0) {
           setSelectedCamera(devices[0].id);
         }
-      } catch (err) {
+      })
+      .catch((err) => {
         console.error("Error getting cameras:", err);
-      }
-    };
-
-    getCameras();
+      });
   }, []);
 
   useEffect(() => {
@@ -52,95 +43,69 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
     const config = {
       fps: 10,
       qrbox: { width: 250, height: 250 },
-      aspectRatio: 1,
+      videoConstraints: {
+        deviceId: selectedCamera,
+        facingMode: "environment",
+      },
     };
 
-    const html5QrCode = new Html5Qrcode("reader");
-    scannerRef.current = html5QrCode;
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      config,
+      /* verbose= */ false
+    );
 
-    const startScanning = async () => {
-      try {
-        await html5QrCode.start(
-          selectedCamera,
-          config,
-          async (decodedText) => {
-            try {
-              // Get user data from storage
-              const users = JSON.parse(localStorage.getItem("users") || "[]");
-              const user = users.find((u: any) => u.code === decodedText);
-              
-              if (user) {
-                // Update user entries
-                user.entries = (user.entries || 0) + 1;
-                localStorage.setItem("users", JSON.stringify(users));
-                
-                onScanSuccess(decodedText, user);
-                toast({
-                  title: "Success",
-                  description: `Welcome ${user.name}!`,
-                });
-              } else {
-                toast({
-                  title: "Error",
-                  description: "Invalid ticket code",
-                  variant: "destructive",
-                });
-              }
-            } catch (err) {
-              console.error("Error processing QR code:", err);
-              toast({
-                title: "Error",
-                description: "Invalid QR code format",
-                variant: "destructive",
-              });
-            }
-          },
-          () => {} // Ignore failures
-        );
-      } catch (err) {
-        console.error("Error starting scanner:", err);
-        toast({
-          title: "Camera Error",
-          description: "Please make sure camera permissions are granted and try again",
-          variant: "destructive",
-        });
+    let isScanning = true;
+
+    scanner.render(
+      async (decodedText) => {
+        if (!isScanning) return;
+        isScanning = false;
+
+        try {
+          const user = await scanTicket(decodedText);
+          onScanSuccess(decodedText, user);
+        } catch (err: any) {
+          console.error("Error processing QR code:", err);
+          toast({
+            title: "Error",
+            description: err.message || "Invalid QR code",
+            variant: "destructive",
+          });
+          isScanning = true;
+        }
+      },
+      (error) => {
+        // Ignore errors during scanning
       }
-    };
-
-    startScanning();
+    );
 
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current
-          .stop()
-          .catch(err => console.error("Error stopping scanner:", err));
-      }
+      isScanning = false;
+      scanner.clear();
     };
   }, [selectedCamera, onScanSuccess, toast]);
+
+  const handleCameraChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCamera(e.target.value);
+  };
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="mb-4">
-        <Select value={selectedCamera} onValueChange={setSelectedCamera}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a camera" />
-          </SelectTrigger>
-          <SelectContent>
-            {cameras.map((camera) => (
-              <SelectItem key={camera.id} value={camera.id}>
-                {camera.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select
+          value={selectedCamera}
+          onChange={handleCameraChange}
+          className="w-full p-2 border rounded"
+        >
+          {cameras.map((camera) => (
+            <option key={camera.id} value={camera.id}>
+              {camera.label}
+            </option>
+          ))}
+        </select>
       </div>
-      <div id="reader" className="rounded-lg overflow-hidden shadow-lg w-full" style={{
-        maxWidth: '100%',
-        height: '300px'
-      }} />
-      <p className="text-sm text-gray-500 mt-2 text-center">
-        Position the QR code in the center of the camera view
-      </p>
+      <div id="reader" className="w-full"></div>
     </div>
   );
 }

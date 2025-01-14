@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import QRCode from "@/components/QRCode";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "@/lib/api";
 
 interface FormData {
   name: string;
@@ -21,7 +21,6 @@ export default function Register() {
     phone: "",
     code: "",
   });
-  const [qrCode, setQrCode] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -37,41 +36,11 @@ export default function Register() {
     e.preventDefault();
 
     try {
-      // Validate registration code
-      const validCodes = JSON.parse(localStorage.getItem("validCodes") || "[]");
-      if (!validCodes.includes(formData.code.toUpperCase())) {
-        toast({
-          title: "Error",
-          description: "Invalid registration code",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create new user
-      const user = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        code: formData.code.toUpperCase(),
-        registeredAt: new Date().toISOString(),
-        entries: 0
-      };
-
-      // Save to users list
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      users.push(user);
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // Remove used code
-      const updatedCodes = validCodes.filter(
-        (c: string) => c !== formData.code.toUpperCase()
-      );
-      localStorage.setItem("validCodes", JSON.stringify(updatedCodes));
-
-      // Store current user
-      localStorage.setItem("currentUser", JSON.stringify(user));
-
+      const user = await registerUser(formData);
+      
+      // Store user in session
+      sessionStorage.setItem("currentUser", JSON.stringify(user));
+      
       toast({
         title: "Success",
         description: "Registration successful!",
@@ -79,12 +48,11 @@ export default function Register() {
 
       // Navigate to ticket page
       navigate("/ticket");
-
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during registration:", error);
       toast({
         title: "Error",
-        description: "Registration failed. Please try again.",
+        description: error.message || "Registration failed. Please try again.",
         variant: "destructive",
       });
     }

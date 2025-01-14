@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import { loginUser } from "@/lib/api";
 
 interface LoginData {
   code: string;
@@ -30,25 +31,10 @@ export default function Login() {
     }
 
     try {
-      // Get existing users
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = await loginUser(formData.code);
       
-      // Find user with matching code (case insensitive)
-      const user = users.find((u: any) => 
-        u.code.toUpperCase() === formData.code.toUpperCase()
-      );
-
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "Invalid registration code",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Store user info in localStorage for session
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      // Store user in session
+      sessionStorage.setItem("currentUser", JSON.stringify(user));
       
       toast({
         title: "Success",
@@ -59,11 +45,11 @@ export default function Login() {
       setTimeout(() => {
         navigate("/ticket");
       }, 1000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during login:", error);
       toast({
         title: "Error",
-        description: "Login failed. Please try again.",
+        description: error.message || "Login failed. Please try again.",
         variant: "destructive",
       });
     }
