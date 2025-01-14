@@ -109,11 +109,11 @@ export default function Admin() {
       setGeneratedCode(code);
       
       // Initialize or get existing codes
-      const existingCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
+      const existingCodes = JSON.parse(localStorage.getItem("validCodes") || "[]");
       const updatedCodes = [...existingCodes, code];
       
       // Save to localStorage
-      localStorage.setItem("registrationCodes", JSON.stringify(updatedCodes));
+      localStorage.setItem("validCodes", JSON.stringify(updatedCodes));
       
       toast({
         title: "Success",

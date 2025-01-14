@@ -77,7 +77,7 @@ export default function Register() {
     try {
       // Get existing users and registration codes
       const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const registrationCodes = JSON.parse(localStorage.getItem("registrationCodes") || "[]");
+      const validCodes = JSON.parse(localStorage.getItem("validCodes") || "[]");
       
       // Check if email already exists
       if (users.some((user: RegistrationData) => user.email === formData.email)) {
@@ -90,7 +90,7 @@ export default function Register() {
       }
 
       // Check if code exists and is valid
-      if (!registrationCodes.includes(formData.code.toUpperCase())) {
+      if (!validCodes.includes(formData.code.toUpperCase())) {
         toast({
           title: "Error",
           description: "Invalid registration code",
@@ -125,8 +125,8 @@ export default function Register() {
       localStorage.setItem("users", JSON.stringify([...users, newUser]));
 
       // Remove used code
-      const updatedCodes = registrationCodes.filter((c: string) => c !== formData.code.toUpperCase());
-      localStorage.setItem("registrationCodes", JSON.stringify(updatedCodes));
+      const updatedCodes = validCodes.filter((c: string) => c !== formData.code.toUpperCase());
+      localStorage.setItem("validCodes", JSON.stringify(updatedCodes));
 
       setQrCode(ticketCode);
       
