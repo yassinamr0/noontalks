@@ -175,7 +175,7 @@ export default function Admin() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#542c6a] to-[#c701a9]">
+      <div className="min-h-screen bg-white">
         <Navbar />
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
@@ -207,7 +207,7 @@ export default function Admin() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-[#542c6a] to-[#c701a9] hover:opacity-90 text-white"
+                className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
               >
                 Login
               </Button>
@@ -219,7 +219,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#542c6a] to-[#c701a9]">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
@@ -239,7 +239,7 @@ export default function Admin() {
               />
               <Button
                 onClick={generateCode}
-                className="bg-gradient-to-r from-[#542c6a] to-[#c701a9] hover:opacity-90 text-white whitespace-nowrap"
+                className="bg-[#542c6a] hover:bg-opacity-90 text-white whitespace-nowrap"
               >
                 Generate Code
               </Button>

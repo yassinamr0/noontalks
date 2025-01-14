@@ -28,11 +28,16 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
       });
 
       // Add logo
+      const logoImg = document.createElement('img');
+      logoImg.src = '/logo-removebg-preview.png';
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+      });
       pdf.addImage('/logo-removebg-preview.png', 'PNG', 75, 20, 60, 60);
 
       // Add title
       pdf.setFontSize(24);
-      pdf.setTextColor(128, 0, 128); // Purple color
+      pdf.setTextColor(84, 44, 106); // #542c6a
       pdf.text('Noon Talks Event Ticket', 105, 100, { align: 'center' });
 
       // Add user details
@@ -65,23 +70,22 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
     <div className="flex flex-col items-center gap-4">
       <div id="qr-code-container" className="relative w-[600px] h-[300px]">
         <img 
-          src="/ticketdesign.png"
+          src="/ticketdesign.png" 
           alt="Ticket Background" 
-          className="w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-contain"
         />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-lg">
           <QRCodeCanvas
             value={value}
             size={150}
             level="H"
             includeMargin={true}
-            style={{ background: 'white', padding: '8px', borderRadius: '8px' }}
           />
         </div>
       </div>
       <Button 
         onClick={downloadQRCode}
-        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+        className="bg-[#542c6a] hover:bg-opacity-90 text-white font-semibold"
       >
         Download Ticket PDF
       </Button>

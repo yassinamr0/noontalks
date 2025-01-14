@@ -140,7 +140,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <div className="container mx-auto px-4 py-12">
         {qrCode ? (
@@ -156,7 +156,7 @@ export default function Register() {
         ) : (
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-purple-600">
+              <h2 className="text-3xl font-bold text-[#542c6a]">
                 {isRegistering ? "Register for Event" : "Login"}
               </h2>
             </div>
@@ -170,7 +170,7 @@ export default function Register() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {isRegistering && (
                 <div>
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="name">Full Name</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -184,7 +184,7 @@ export default function Register() {
               )}
 
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -199,7 +199,7 @@ export default function Register() {
 
               {isRegistering && (
                 <div>
-                  <Label htmlFor="phone">Phone Number (Optional)</Label>
+                  <Label htmlFor="phone">Phone (Optional)</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -213,7 +213,7 @@ export default function Register() {
               )}
 
               <div>
-                <Label htmlFor="code">Code *</Label>
+                <Label htmlFor="code">Registration Code</Label>
                 <Input
                   id="code"
                   value={formData.code}
@@ -227,7 +227,7 @@ export default function Register() {
 
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
               >
                 {isRegistering ? "Register" : "Login"}
               </Button>

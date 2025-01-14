@@ -1,19 +1,23 @@
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
-const Index = () => {
+export default function Index() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-accent">
+    <div className="min-h-screen bg-gradient-to-br from-[#542c6a] to-[#c701a9]">
       <Navbar />
-      <div className="container mx-auto px-4 py-20">
-        <div className="max-w-3xl mx-auto text-center text-white">
-          <h1 className="text-5xl font-bold mb-6">Welcome to Noon Talks</h1>
-          <p className="text-xl mb-8">
-            Join us for an inspiring session of public speaking and networking
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-32 w-auto mb-8" />
+          <h1 className="mb-6">
+            <span className="text-4xl md:text-6xl font-bold text-white block mb-2">Welcome to</span>
+            <span className="text-5xl md:text-7xl font-bold text-white font-serif italic">Noon Talks</span>
+          </h1>
+          <p className="text-lg md:text-xl text-white mb-12">
+            Join us for an amazing event! Register now to secure your spot.
           </p>
           <Link
             to="/register"
-            className="inline-block bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-colors"
+            className="inline-block bg-white text-[#542c6a] px-8 py-3 rounded-lg font-semibold text-lg hover:bg-opacity-90 transition-colors"
           >
             Register Now
           </Link>
@@ -21,6 +25,4 @@ const Index = () => {
       </div>
     </div>
   );
-};
-
-export default Index;
+}
