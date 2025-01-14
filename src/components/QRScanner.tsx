@@ -11,7 +11,6 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Create scanner instance
     const qrScanner = new Html5QrcodeScanner(
       "qr-reader",
       { 
@@ -19,45 +18,39 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
         showTorchButtonIfSupported: true,
-        formatsToSupport: [ 'QR_CODE' ],
-        rememberLastUsedCamera: true,
-        supportedScanTypes: [ 'camera' ],
-        showZoomSliderIfSupported: true,
-        defaultZoomValueIfSupported: 2
+        formatsToSupport: [ 'QR_CODE' ]
       },
       /* verbose= */ false
     );
 
-    const handleScanSuccess = (decodedText: string) => {
-      onScanSuccess(decodedText);
-      toast({
-        title: "Success",
-        description: "QR Code scanned successfully",
-      });
-    };
-
-    const handleScanError = (error: any) => {
-      console.error("QR Code scanning error:", error);
-      if (error.name === "NotAllowedError") {
+    qrScanner.render(
+      (decodedText: string) => {
+        onScanSuccess(decodedText);
         toast({
-          title: "Camera Access Required",
-          description: "Please allow camera access to scan QR codes",
-          variant: "destructive",
+          title: "Success",
+          description: "QR Code scanned successfully",
         });
+      },
+      (error: any) => {
+        console.error("QR Code scanning error:", error);
+        if (error.name === "NotAllowedError") {
+          toast({
+            title: "Camera Access Required",
+            description: "Please allow camera access to scan QR codes",
+            variant: "destructive",
+          });
+        }
       }
-    };
+    );
 
-    // Render the scanner
-    qrScanner.render(handleScanSuccess, handleScanError);
     setScanner(qrScanner);
 
-    // Cleanup function
     return () => {
       if (scanner) {
-        scanner.clear();
+        scanner.clear().catch(console.error);
       }
     };
-  }, []); // Empty dependency array since we only want to create the scanner once
+  }, [onScanSuccess, toast]);
 
   return (
     <div className="w-full max-w-md mx-auto">

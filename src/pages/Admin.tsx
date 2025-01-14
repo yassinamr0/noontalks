@@ -56,11 +56,7 @@ export default function Admin() {
 
   const loadUsers = () => {
     try {
-      const storedUsers = localStorage.getItem("users");
-      if (!storedUsers) {
-        setUsers([]);
-        return;
-      }
+      const storedUsers = localStorage.getItem("users") || "[]";
       const parsedUsers = JSON.parse(storedUsers);
       setUsers(Array.isArray(parsedUsers) ? parsedUsers : []);
     } catch (error) {
