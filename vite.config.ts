@@ -17,10 +17,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ["react", "react-dom"],
+          vendor: ["react", "react-dom", "react-router-dom"],
+          qr: ["html5-qrcode", "qrcode.react"],
+          pdf: ["html2canvas", "jspdf"],
         },
       },
     },
+  },
+  optimizeDeps: {
+    include: ["html5-qrcode", "qrcode.react", "html2canvas", "jspdf"],
   },
   server: {
     port: 3000,
