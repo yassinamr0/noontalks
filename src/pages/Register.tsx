@@ -152,15 +152,25 @@ export default function Register() {
       <div className="min-h-screen bg-white">
         <Navbar />
         <div className="container mx-auto px-4 py-12">
-          <TicketDisplay
-            ticketId={qrCode}
-            userDetails={{
-              name: formData.name,
-              email: formData.email,
-              phone: formData.phone,
-              code: formData.code,
-            }}
-          />
+          {qrCode && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+                <h3 className="text-lg font-semibold mb-4 text-center">Your Ticket</h3>
+                <div className="mb-4">
+                  <QRCode value={qrCode} />
+                </div>
+                <p className="text-sm text-gray-600 text-center mb-4">
+                  Make sure to screenshot your ticket!
+                </p>
+                <Button
+                  onClick={() => setQrCode("")}
+                  className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

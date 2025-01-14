@@ -15,7 +15,6 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
       fps: 10,
       qrbox: { width: 250, height: 250 },
       aspectRatio: 1,
-      formatsToSupport: [Html5Qrcode.FORMATS.QR_CODE],
     };
 
     const html5QrCode = new Html5Qrcode("reader");
@@ -30,13 +29,13 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
           const backCamera = devices.find(device => 
             device.label.toLowerCase().includes('back') || 
             device.label.toLowerCase().includes('rear') ||
-            device.label.includes('1')  // Often main camera has 1 in name
+            device.label.includes('2')  // Often main camera has 2 in name
           );
           
           const cameraId = backCamera ? backCamera.id : devices[0].id;
 
           await html5QrCode.start(
-            cameraId,
+            { deviceId: cameraId },
             config,
             (decodedText) => {
               onScanSuccess(decodedText);
@@ -67,14 +66,14 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
           .catch(err => console.error("Error stopping scanner:", err));
       }
     };
-  }, [onScanSuccess]);
+  }, [onScanSuccess, toast]);
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div id="reader" className="rounded-lg overflow-hidden shadow-lg w-full" style={{
-          maxWidth: '100%',
-          height: '300px'
-        }} />
+        maxWidth: '100%',
+        height: '300px'
+      }} />
       <p className="text-sm text-gray-500 mt-2 text-center">
         Position the QR code in the center of the camera view
       </p>
