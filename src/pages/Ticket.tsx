@@ -30,7 +30,18 @@ export default function Ticket() {
       return;
     }
 
-    setUser(JSON.parse(currentUser));
+    try {
+      const userData = JSON.parse(currentUser);
+      setUser(userData);
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      toast({
+        title: "Error",
+        description: "Invalid user data",
+        variant: "destructive",
+      });
+      navigate("/login");
+    }
   }, [navigate, toast]);
 
   const handleLogout = () => {
@@ -58,7 +69,11 @@ export default function Ticket() {
           </div>
 
           <div className="mb-6">
-            <QRCode value={user.ticketCode} />
+            <QRCode value={JSON.stringify({
+              ticketCode: user.ticketCode,
+              code: user.code,
+              name: user.name
+            })} />
           </div>
 
           <div className="space-y-2 mb-6">

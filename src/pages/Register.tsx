@@ -112,9 +112,10 @@ export default function Register() {
       // Generate unique ticket code
       const ticketCode = Math.random().toString(36).substring(2, 15);
 
-      // Add user to users list
+      // Add user to users list with uppercase code
       const newUser = {
         ...formData,
+        code: formData.code.toUpperCase(),
         ticketCode,
         registeredAt: new Date().toISOString(),
         entries: 0,
@@ -129,7 +130,12 @@ export default function Register() {
       // Store current user
       localStorage.setItem("currentUser", JSON.stringify(newUser));
 
-      setQrCode(ticketCode);
+      // Set QR code
+      setQrCode(JSON.stringify({
+        ticketCode,
+        code: formData.code.toUpperCase(),
+        name: formData.name
+      }));
       
       // Send email
       await sendTicketEmail(newUser);

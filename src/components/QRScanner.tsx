@@ -65,15 +65,18 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
           config,
           async (decodedText) => {
             try {
+              // Parse QR code data
+              const qrData = JSON.parse(decodedText);
+              
               // Get user data from storage
               const users = JSON.parse(localStorage.getItem("users") || "[]");
-              const user = users.find((u: any) => u.ticketCode === decodedText);
+              const user = users.find((u: any) => u.ticketCode === qrData.ticketCode);
               
               if (user) {
-                onScanSuccess(decodedText, user);
+                onScanSuccess(qrData.ticketCode, user);
                 toast({
                   title: "Success",
-                  description: `Welcome ${user.name}!`,
+                  description: `Welcome ${qrData.name}!`,
                 });
               } else {
                 toast({
@@ -86,7 +89,7 @@ export function QRScanner({ onScanSuccess }: QRScannerProps) {
               console.error("Error processing QR code:", err);
               toast({
                 title: "Error",
-                description: "Error processing QR code",
+                description: "Invalid QR code format",
                 variant: "destructive",
               });
             }
