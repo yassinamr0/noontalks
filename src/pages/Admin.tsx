@@ -33,7 +33,11 @@ const ADMIN_CREDENTIALS = {
 
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem("adminLoggedIn") === "true";
+    try {
+      return localStorage.getItem("adminLoggedIn") === "true";
+    } catch {
+      return false;
+    }
   });
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -41,6 +45,7 @@ export default function Admin() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [generatedCode, setGeneratedCode] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,37 +76,51 @@ export default function Admin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      username === ADMIN_CREDENTIALS.username &&
-      password === ADMIN_CREDENTIALS.password
-    ) {
-      setIsLoggedIn(true);
-      localStorage.setItem("adminLoggedIn", "true");
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-    } else {
+    try {
+      if (
+        username === ADMIN_CREDENTIALS.username &&
+        password === ADMIN_CREDENTIALS.password
+      ) {
+        setIsLoggedIn(true);
+        localStorage.setItem("adminLoggedIn", "true");
+        toast({
+          title: "Success",
+          description: "Logged in successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Invalid credentials",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "Invalid credentials",
+        description: "An error occurred during login",
         variant: "destructive",
       });
     }
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem("adminLoggedIn");
-    setUsername("");
-    setPassword("");
+    try {
+      setIsLoggedIn(false);
+      localStorage.removeItem("adminLoggedIn");
+      setUsername("");
+      setPassword("");
+      setShowScanner(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const generateCode = () => {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setGeneratedCode(code);
-    
     try {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      setGeneratedCode(code);
+      
       const validCodes = JSON.parse(localStorage.getItem("validCodes") || "[]");
       localStorage.setItem("validCodes", JSON.stringify([...validCodes, code]));
       
@@ -110,10 +129,10 @@ export default function Admin() {
         description: "Registration code generated successfully",
       });
     } catch (error) {
-      console.error("Error saving code:", error);
+      console.error("Error generating code:", error);
       toast({
         title: "Error",
-        description: "Failed to save registration code",
+        description: "Failed to generate registration code",
         variant: "destructive",
       });
     }
@@ -273,7 +292,27 @@ export default function Admin() {
 
           <div className="mb-8 p-6 bg-gray-50 rounded-lg">
             <h3 className="text-xl font-semibold mb-4">Scan Ticket QR Code</h3>
-            <QRScanner onScanSuccess={handleScanSuccess} />
+            <div className="flex flex-col items-center gap-4">
+              {!showScanner ? (
+                <Button
+                  onClick={() => setShowScanner(true)}
+                  className="bg-[#542c6a] hover:bg-opacity-90 text-white"
+                >
+                  Start Scanner
+                </Button>
+              ) : (
+                <>
+                  <QRScanner onScanSuccess={handleScanSuccess} />
+                  <Button
+                    onClick={() => setShowScanner(false)}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Stop Scanner
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -282,27 +321,13 @@ export default function Admin() {
               <table className="min-w-full bg-white">
                 <thead className="bg-[#3a1f49] text-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Code
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Registered At
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Phone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Code</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Registered At</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -310,9 +335,7 @@ export default function Admin() {
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm">{user.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">{user.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {user.phone || "-"}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">{user.phone || "-"}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">{user.code}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 py-1 rounded text-sm ${user.validated ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
