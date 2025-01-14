@@ -280,16 +280,20 @@ export default function Admin() {
                   Start Scanner
                 </Button>
               ) : (
-                <>
+                <div className="w-full">
                   <QRScanner onScanSuccess={handleScanSuccess} />
                   <Button
-                    onClick={() => setShowScanner(false)}
+                    onClick={() => {
+                      setShowScanner(false);
+                      // Force reload users to show updated entries
+                      loadUsers();
+                    }}
                     variant="outline"
-                    className="mt-4"
+                    className="mt-4 w-full"
                   >
                     Stop Scanner
                   </Button>
-                </>
+                </div>
               )}
             </div>
           </div>

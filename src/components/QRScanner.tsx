@@ -1,83 +1,82 @@
-import { useEffect, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { useEffect, useRef } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import { useToast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
-  onScanSuccess: (ticketCode: string) => void;
+  onScanSuccess: (decodedText: string) => void;
 }
 
 export function QRScanner({ onScanSuccess }: QRScannerProps) {
-  const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const { toast } = useToast();
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   useEffect(() => {
-    const html5QrCode = new Html5Qrcode("qr-reader");
-    setScanner(html5QrCode);
-
-    return () => {
-      if (html5QrCode.isScanning) {
-        html5QrCode.stop().catch(console.error);
-      }
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1,
+      formatsToSupport: [Html5Qrcode.FORMATS.QR_CODE],
     };
-  }, []);
 
-  const startScanning = async () => {
-    if (!scanner) return;
+    const html5QrCode = new Html5Qrcode("reader");
+    scannerRef.current = html5QrCode;
 
-    try {
-      await scanner.start(
-        { facingMode: isMobile ? "environment" : "user" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
-        (decodedText) => {
-          onScanSuccess(decodedText);
-          toast({
-            title: "Success",
-            description: "QR Code scanned successfully",
-          });
-        },
-        (error) => {
-          console.log(error);
+    const startScanning = async () => {
+      try {
+        // Get available cameras
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          // Try to use the back camera first (usually better for QR scanning)
+          const backCamera = devices.find(device => 
+            device.label.toLowerCase().includes('back') || 
+            device.label.toLowerCase().includes('rear') ||
+            device.label.includes('1')  // Often main camera has 1 in name
+          );
+          
+          const cameraId = backCamera ? backCamera.id : devices[0].id;
+
+          await html5QrCode.start(
+            cameraId,
+            config,
+            (decodedText) => {
+              onScanSuccess(decodedText);
+              toast({
+                title: "Success",
+                description: "QR Code scanned successfully",
+              });
+            },
+            () => {} // Ignore failures
+          );
         }
-      );
-    } catch (err) {
-      console.error("Scanner error:", err);
-      toast({
-        title: "Camera Error",
-        description: "Please make sure camera permissions are granted and try again",
-        variant: "destructive",
-      });
-    }
-  };
-
-  useEffect(() => {
-    startScanning();
-    
-    return () => {
-      if (scanner?.isScanning) {
-        scanner.stop().catch(console.error);
+      } catch (err) {
+        console.error("Error starting scanner:", err);
+        toast({
+          title: "Camera Error",
+          description: "Please make sure camera permissions are granted and try again",
+          variant: "destructive",
+        });
       }
     };
-  }, [scanner]);
+
+    startScanning();
+
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current
+          .stop()
+          .catch(err => console.error("Error stopping scanner:", err));
+      }
+    };
+  }, [onScanSuccess]);
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div 
-        id="qr-reader" 
-        className="rounded-lg overflow-hidden shadow-lg"
-        style={{
+      <div id="reader" className="rounded-lg overflow-hidden shadow-lg w-full" style={{
           maxWidth: '100%',
-          height: isMobile ? '300px' : '250px'
-        }}
-      />
+          height: '300px'
+        }} />
       <p className="text-sm text-gray-500 mt-2 text-center">
-        {isMobile 
-          ? "Make sure you're using your device's back camera"
-          : "Position the QR code in the center of the camera view"
-        }
+        Position the QR code in the center of the camera view
       </p>
     </div>
   );

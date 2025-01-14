@@ -169,18 +169,20 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
-          <div className="text-center mb-8">
-            <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-            <h2 className="text-3xl font-bold text-[#542c6a]">
-              Register for Event
-            </h2>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
+          <div className="text-center mb-6">
+            <img 
+              src="/logo-removebg-preview.png" 
+              alt="Noon Talks Logo" 
+              className="mx-auto h-16 w-auto mb-4"
+            />
+            <h2 className="text-2xl font-bold text-[#542c6a]">Register</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium">Name</Label>
               <Input
                 id="name"
                 name="name"
@@ -193,7 +195,7 @@ export default function Register() {
             </div>
 
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -207,7 +209,7 @@ export default function Register() {
             </div>
 
             <div>
-              <Label htmlFor="phone">Phone Number (Optional)</Label>
+              <Label htmlFor="phone" className="text-sm font-medium">Phone Number (Optional)</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -220,7 +222,7 @@ export default function Register() {
             </div>
 
             <div>
-              <Label htmlFor="code">Registration Code</Label>
+              <Label htmlFor="code" className="text-sm font-medium">Registration Code</Label>
               <Input
                 id="code"
                 name="code"
@@ -232,16 +234,21 @@ export default function Register() {
               />
             </div>
 
-            {error && (
-              <div className="text-red-500 text-sm">{error}</div>
-            )}
-
             <Button
               type="submit"
-              className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white"
+              className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white mt-6"
             >
               Register
             </Button>
+
+            <div className="text-center mt-4">
+              <p className="text-sm text-gray-600">
+                Already registered?{" "}
+                <a href="/login" className="text-[#542c6a] hover:underline">
+                  Log in!
+                </a>
+              </p>
+            </div>
           </form>
         </div>
       </div>
