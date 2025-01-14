@@ -32,7 +32,6 @@ export default function Register() {
       const templateParams = {
         to_name: ticketData.name,
         to_email: ticketData.email,
-        ticket_id: qrCode,
         code: ticketData.code
       };
 
@@ -45,14 +44,14 @@ export default function Register() {
 
       console.log('Email sent successfully:', response);
       toast({
-        title: "Ticket Sent!",
-        description: "Check your email for the ticket details.",
+        title: "Registration Complete!",
+        description: "Check your email for login details.",
       });
     } catch (error) {
       console.error('Error sending email:', error);
       toast({
         title: "Email Sending Failed",
-        description: "Please save your QR code from this page.",
+        description: "Please save your registration code: " + ticketData.code,
         variant: "destructive",
       });
       throw error;
