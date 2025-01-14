@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QRCode } from "@/components/QRCode";
+import { TicketDisplay } from "@/components/TicketDisplay"; // Import TicketDisplay component
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import emailjs from '@emailjs/browser';
@@ -134,119 +135,117 @@ export default function Register() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
-          <div className="text-center mb-8">
-            <img src={logo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
-            <h2 className="text-3xl font-bold text-purple-600">
-              {isRegistering ? "Register for Event" : "Login"}
-            </h2>
-          </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-              {error}
+        {qrCode ? (
+          <TicketDisplay 
+            ticketId={qrCode} 
+            userDetails={{
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+              code: formData.code
+            }}
+          />
+        ) : (
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
+            <div className="text-center mb-8">
+              <img src={logo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+              <h2 className="text-3xl font-bold text-purple-600">
+                {isRegistering ? "Register for Event" : "Login"}
+              </h2>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {isRegistering && (
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {isRegistering && (
+                <div>
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="mt-1"
+                    required
+                  />
+                </div>
+              )}
+
               <div>
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
+                  id="email"
+                  type="email"
+                  value={formData.email}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, email: e.target.value })
                   }
                   className="mt-1"
                   required
                 />
               </div>
-            )}
 
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="mt-1"
-                required
-              />
-            </div>
+              {isRegistering && (
+                <div>
+                  <Label htmlFor="phone">Phone Number (Optional)</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+              )}
 
-            {isRegistering && (
               <div>
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Label htmlFor="code">Code *</Label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
+                  id="code"
+                  value={formData.code}
                   onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
+                    setFormData({ ...formData, code: e.target.value })
                   }
                   className="mt-1"
+                  required
                 />
               </div>
-            )}
 
-            <div>
-              <Label htmlFor="code">Code *</Label>
-              <Input
-                id="code"
-                value={formData.code}
-                onChange={(e) =>
-                  setFormData({ ...formData, code: e.target.value })
-                }
-                className="mt-1"
-                required
-              />
-            </div>
+              <Button
+                type="submit"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {isRegistering ? "Register" : "Login"}
+              </Button>
 
-            <Button
-              type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              {isRegistering ? "Register" : "Login"}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-4"
-              onClick={() => {
-                setIsRegistering(!isRegistering);
-                setFormData({
-                  name: "",
-                  email: "",
-                  phone: "",
-                  code: "",
-                });
-                setError("");
-                setQrCode("");
-              }}
-            >
-              {isRegistering ? "Already registered? Login" : "Need to register?"}
-            </Button>
-          </form>
-
-          {qrCode && (
-            <div className="mt-8">
-              <QRCode 
-                value={qrCode} 
-                userDetails={{
-                  name: formData.name,
-                  email: formData.email,
-                  phone: formData.phone,
-                  code: formData.code
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setFormData({
+                    name: "",
+                    email: "",
+                    phone: "",
+                    code: "",
+                  });
+                  setError("");
+                  setQrCode("");
                 }}
-              />
-            </div>
-          )}
-        </div>
+              >
+                {isRegistering ? "Already registered? Login" : "Need to register?"}
+              </Button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
