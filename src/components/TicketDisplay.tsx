@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { QRCode } from "./QRCode";
-import logo from '/logo.png';
+import logo from '/logo-removebg-preview.png';
 
 interface TicketDisplayProps {
   ticketId: string;

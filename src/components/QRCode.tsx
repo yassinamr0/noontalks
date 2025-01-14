@@ -2,7 +2,6 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { Button } from './ui/button';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import logo from '/logo.png';
 
 interface QRCodeProps {
   value: string;
@@ -29,9 +28,7 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
       });
 
       // Add logo
-      const logoImg = new Image();
-      logoImg.src = logo;
-      pdf.addImage(logo, 'PNG', 75, 20, 60, 60);
+      pdf.addImage('/logo-removebg-preview.png', 'PNG', 75, 20, 60, 60);
 
       // Add title
       pdf.setFontSize(24);
@@ -66,13 +63,21 @@ export function QRCode({ value, userDetails }: QRCodeProps) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div id="qr-code-container" className="bg-white p-4 rounded-lg shadow-lg">
-        <QRCodeCanvas
-          value={value}
-          size={200}
-          level="H"
-          includeMargin={true}
+      <div id="qr-code-container" className="relative w-[600px] h-[300px]">
+        <img 
+          src="/ticketdesign.png" 
+          alt="Ticket Background" 
+          className="w-full h-full object-contain"
         />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <QRCodeCanvas
+            value={value}
+            size={150}
+            level="H"
+            includeMargin={true}
+            style={{ background: 'white', padding: '8px', borderRadius: '8px' }}
+          />
+        </div>
       </div>
       <Button 
         onClick={downloadQRCode}

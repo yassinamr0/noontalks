@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QRCode } from "@/components/QRCode";
-import { TicketDisplay } from "@/components/TicketDisplay"; // Import TicketDisplay component
+import TicketDisplay from "@/components/TicketDisplay";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import emailjs from '@emailjs/browser';
-import logo from '/logo.png';
 
 interface RegistrationData {
   name: string;
@@ -63,6 +62,7 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setQrCode(""); // Reset QR code
 
     if (isRegistering) {
       // Registration logic
@@ -88,7 +88,13 @@ export default function Register() {
           return;
         }
 
-        // Generate QR code
+        // Check if code is already used
+        if (users.some((user: RegistrationData) => user.code === formData.code)) {
+          setError("This registration code has already been used");
+          return;
+        }
+
+        // Generate QR code only if all validations pass
         const newQrCode = `NOON-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         setQrCode(newQrCode);
 
@@ -105,6 +111,7 @@ export default function Register() {
 
       } catch (err) {
         setError(err instanceof Error ? err.message : "Registration failed");
+        setQrCode(""); // Clear QR code if there's an error
       }
     } else {
       // Login logic
@@ -127,6 +134,7 @@ export default function Register() {
         setQrCode(user.qrCode);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Login failed");
+        setQrCode(""); // Clear QR code if there's an error
       }
     }
   };
@@ -148,7 +156,6 @@ export default function Register() {
         ) : (
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
             <div className="text-center mb-8">
-              <img src={logo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
               <h2 className="text-3xl font-bold text-purple-600">
                 {isRegistering ? "Register for Event" : "Login"}
               </h2>
