@@ -55,8 +55,10 @@ export default function Login() {
         description: "Login successful!",
       });
 
-      // Navigate to ticket display
-      navigate("/ticket");
+      // Wait for toast to show before navigating
+      setTimeout(() => {
+        navigate("/ticket");
+      }, 1000);
     } catch (error) {
       console.error("Error during login:", error);
       toast({
