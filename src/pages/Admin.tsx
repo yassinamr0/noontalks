@@ -14,7 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import noonLogo from '../assets/logo-removebg-preview.png';
 
 interface User {
   name: string;
@@ -191,7 +190,7 @@ export default function Admin() {
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
             <div className="text-center mb-8">
-              <img src={noonLogo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+              <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
               <h2 className="text-3xl font-bold text-purple-600">Admin Login</h2>
             </div>
             <form onSubmit={handleLogin} className="space-y-6">
@@ -235,7 +234,7 @@ export default function Admin() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
-            <img src={noonLogo} alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
+            <img src="/logo-removebg-preview.png" alt="Noon Talks Logo" className="mx-auto h-24 w-auto mb-4" />
             <h2 className="text-3xl font-bold text-purple-600">Admin Dashboard</h2>
           </div>
 
