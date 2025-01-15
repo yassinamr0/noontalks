@@ -64,8 +64,8 @@ export const adminLogin = async (password: string): Promise<AdminLoginResponse> 
 export const generateCodes = async (count: number): Promise<GenerateCodeResponse> => {
   try {
     const response = await fetch(
-      `${API_URL}/admin/generate-codes?count=${count}`,
-      fetchOptions('POST')
+      `${API_URL}/admin/generate-codes`,
+      fetchOptions('POST', { count })
     );
     return handleResponse<GenerateCodeResponse>(response);
   } catch (error) {
