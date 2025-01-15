@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
-import { API_URL } from '@/config';
+import { adminLogin } from '@/lib/api';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
@@ -13,22 +13,7 @@ export default function AdminLogin() {
     e.preventDefault();
     
     try {
-      const response = await fetch(`${API_URL}/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      // Store the admin token
+      const data = await adminLogin(password);
       sessionStorage.setItem("adminToken", data.token);
       sessionStorage.setItem("isAdmin", "true");
       

@@ -16,6 +16,11 @@ interface User {
   lastEntry?: string;
 }
 
+interface AdminLoginResponse {
+  message: string;
+  token: string;
+}
+
 const handleResponse = async <T>(response: Response): Promise<T> => {
   const data = await response.json();
   
@@ -24,6 +29,19 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   }
   
   return data;
+};
+
+export const adminLogin = async (password: string): Promise<AdminLoginResponse> => {
+  const response = await fetch(`${API_URL}/admin/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ password }),
+    credentials: 'include'
+  });
+
+  return handleResponse<AdminLoginResponse>(response);
 };
 
 export const registerUser = async (userData: { name: string; email: string; phone?: string; code: string }): Promise<User> => {
@@ -55,11 +73,16 @@ export const loginUser = async (code: string): Promise<User> => {
 };
 
 export const scanTicket = async (code: string): Promise<User> => {
+  const token = sessionStorage.getItem('adminToken');
+  if (!token) {
+    throw new Error('Admin token not found. Please login again.');
+  }
+
   const response = await fetch(`${API_URL}/users/scan`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({ code }),
     credentials: 'include'
@@ -70,9 +93,14 @@ export const scanTicket = async (code: string): Promise<User> => {
 };
 
 export const getUsers = async (): Promise<User[]> => {
+  const token = sessionStorage.getItem('adminToken');
+  if (!token) {
+    throw new Error('Admin token not found. Please login again.');
+  }
+
   const response = await fetch(`${API_URL}/users`, {
     headers: {
-      'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+      'Authorization': `Bearer ${token}`
     },
     credentials: 'include'
   });
@@ -81,11 +109,16 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 export const generateCodes = async (count: number = 1): Promise<{ code: string }> => {
+  const token = sessionStorage.getItem('adminToken');
+  if (!token) {
+    throw new Error('Admin token not found. Please login again.');
+  }
+
   const response = await fetch(`${API_URL}/codes/generate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({ count }),
     credentials: 'include'
