@@ -53,23 +53,47 @@ app.get('/api', (req, res) => {
 });
 
 // Admin token
-const ADMIN_TOKEN = 'noontalks2024';
+const ADMIN_TOKEN = 'noontalks2024'; // This should be in an environment variable in production
 
 // Admin authentication middleware
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'No authorization header' });
+    return res.status(401).json({ 
+      message: 'No token provided',
+      error: 'Authentication required'
+    });
   }
 
   const token = authHeader.split(' ')[1];
+  
   if (token !== ADMIN_TOKEN) {
-    return res.status(401).json({ message: 'Invalid admin token' });
+    return res.status(401).json({ 
+      message: 'Invalid admin token',
+      error: 'Authentication failed'
+    });
   }
 
   next();
 };
+
+// Admin login endpoint
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  
+  if (password !== ADMIN_TOKEN) {
+    return res.status(401).json({ 
+      message: 'Invalid admin password',
+      error: 'Authentication failed'
+    });
+  }
+
+  res.json({ 
+    message: 'Admin login successful',
+    token: ADMIN_TOKEN
+  });
+});
 
 // MongoDB connection with optimized settings for serverless
 let cachedDb = null;
