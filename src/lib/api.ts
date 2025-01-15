@@ -1,6 +1,4 @@
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://noontalks-backend.vercel.app'
-  : 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ADMIN_TOKEN = 'noontalks2024';
 
