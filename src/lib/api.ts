@@ -1,112 +1,95 @@
-// Backend API URL
-const API_URL = 'https://noontalks-backend.vercel.app/api';
+import { API_URL } from '@/config';
 
-const ADMIN_TOKEN = 'noontalks2024';
+interface ApiResponse<T> {
+  message?: string;
+  error?: string;
+  [key: string]: any;
+}
 
-const defaultHeaders = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'X-Requested-With': 'XMLHttpRequest'
-};
+interface User {
+  name: string;
+  email: string;
+  phone?: string;
+  code: string;
+  entries: number;
+  registeredAt: string;
+  lastEntry?: string;
+}
 
-const adminHeaders = {
-  ...defaultHeaders,
-  'Authorization': `Bearer ${ADMIN_TOKEN}`,
-};
-
-const handleResponse = async (response: Response) => {
+const handleResponse = async <T>(response: Response): Promise<T> => {
+  const data = await response.json();
+  
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+    throw new Error(data.message || 'Something went wrong');
   }
-  return response.json();
+  
+  return data;
 };
 
-export const registerUser = async (userData: any) => {
-  try {
-    const response = await fetch(`${API_URL}/register`, {
-      method: 'POST',
-      headers: defaultHeaders,
-      body: JSON.stringify(userData),
-      credentials: 'include'
-    });
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error in registerUser:', error);
-    throw error;
-  }
+export const registerUser = async (userData: { name: string; email: string; phone?: string; code: string }): Promise<User> => {
+  const response = await fetch(`${API_URL}/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(userData),
+    credentials: 'include'
+  });
+
+  const data = await handleResponse<ApiResponse<User>>(response);
+  return data.user;
 };
 
-export const loginUser = async (code: string) => {
-  try {
-    const response = await fetch(`${API_URL}/users/login`, {
-      method: 'POST',
-      headers: defaultHeaders,
-      body: JSON.stringify({ code }),
-      credentials: 'include'
-    });
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error in loginUser:', error);
-    throw error;
-  }
+export const loginUser = async (code: string): Promise<User> => {
+  const response = await fetch(`${API_URL}/users/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
+    credentials: 'include'
+  });
+
+  const data = await handleResponse<ApiResponse<User>>(response);
+  return data.user;
 };
 
-export const scanTicket = async (code: string) => {
-  try {
-    const response = await fetch(`${API_URL}/users/scan`, {
-      method: 'POST',
-      headers: defaultHeaders,
-      body: JSON.stringify({ code }),
-      credentials: 'include'
-    });
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error in scanTicket:', error);
-    throw error;
-  }
+export const scanTicket = async (code: string): Promise<User> => {
+  const response = await fetch(`${API_URL}/users/scan`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+    },
+    body: JSON.stringify({ code }),
+    credentials: 'include'
+  });
+
+  const data = await handleResponse<ApiResponse<User>>(response);
+  return data.user;
 };
 
-export const getUsers = async () => {
-  try {
-    const response = await fetch(`${API_URL}/users`, {
-      method: 'GET',
-      headers: adminHeaders,
-      credentials: 'include'
-    });
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error in getUsers:', error);
-    throw error;
-  }
+export const getUsers = async (): Promise<User[]> => {
+  const response = await fetch(`${API_URL}/users`, {
+    headers: {
+      'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+    },
+    credentials: 'include'
+  });
+
+  return handleResponse<User[]>(response);
 };
 
-export const addValidCodes = async (codes: string[]) => {
-  try {
-    const response = await fetch(`${API_URL}/codes/generate`, {
-      method: 'POST',
-      headers: adminHeaders,
-      body: JSON.stringify({ count: codes.length }),
-      credentials: 'include'
-    });
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error in addValidCodes:', error);
-    throw error;
-  }
-};
+export const generateCodes = async (count: number = 1): Promise<{ code: string }> => {
+  const response = await fetch(`${API_URL}/codes/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+    },
+    body: JSON.stringify({ count }),
+    credentials: 'include'
+  });
 
-export const generateCodes = async (count: number) => {
-  try {
-    const response = await fetch(`${API_URL}/codes/generate`, {
-      method: 'POST',
-      headers: adminHeaders,
-      body: JSON.stringify({ count }),
-      credentials: 'include'
-    });
-    return handleResponse(response);
-  } catch (error) {
-    console.error('Error in generateCodes:', error);
-    throw error;
-  }
+  return handleResponse<{ code: string }>(response);
 };

@@ -71,30 +71,39 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// MongoDB connection with better error handling
+// MongoDB connection with optimized settings for serverless
+let cachedDb = null;
+
 const connectWithRetry = async () => {
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    return cachedDb;
+  }
+
   const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
   
   try {
-    if (mongoose.connection.readyState !== 1) {
-      console.log('Connecting to MongoDB...');
-      await mongoose.connect(mongoUrl, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-      });
+    console.log('Connecting to MongoDB...');
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 2000, // Reduce from 5000 to 2000
+      socketTimeoutMS: 10000,         // Reduce from 45000 to 10000
+      connectTimeoutMS: 2000,         // Add explicit connect timeout
+      maxPoolSize: 1,                 // Reduce pool size for serverless
+      minPoolSize: 0,
+      maxIdleTimeMS: 5000,           // Close idle connections after 5 seconds
+      keepAlive: false               // Don't keep connection alive
+    };
+
+    if (!cachedDb) {
+      await mongoose.connect(mongoUrl, options);
+      cachedDb = mongoose.connection;
       console.log('MongoDB connected successfully');
     }
-    return mongoose.connection;
+
+    return cachedDb;
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    // Check for specific error types
-    if (err.name === 'MongoServerSelectionError') {
-      console.error('Could not connect to MongoDB server. Please check your connection string and make sure the server is running.');
-    } else if (err.name === 'MongoNetworkError') {
-      console.error('Network error occurred while connecting to MongoDB.');
-    }
     throw err;
   }
 };
@@ -106,6 +115,13 @@ const withDB = (handler) => async (req, res) => {
     return handler(req, res);
   } catch (error) {
     console.error('Database operation error:', error);
+    
+    if (error.name === 'MongooseServerSelectionError') {
+      return res.status(503).json({ 
+        message: 'Database temporarily unavailable',
+        error: 'Connection timeout'
+      });
+    }
     
     // Send appropriate error response based on error type
     if (error.name === 'ValidationError') {
@@ -132,52 +148,57 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: String,
   phone: String,
-  code: { type: String, unique: true },
-  registeredAt: { type: Date, default: Date.now },
-  entries: { type: Number, default: 0 }
+  code: { 
+    type: String, 
+    unique: true,
+    uppercase: true
+  },
+  registeredAt: {
+    type: Date,
+    default: Date.now
+  },
+  entries: {
+    type: Number,
+    default: 0
+  },
+  lastEntry: Date
 });
-
-const User = mongoose.model('User', userSchema);
-
-// Valid Codes Schema
-const validCodeSchema = new mongoose.Schema({
-  code: { type: String, unique: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const ValidCode = mongoose.model('ValidCode', validCodeSchema);
 
 // Function to generate a random code
 function generateCode(length = 6) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
   for (let i = 0; i < length; i++) {
-    code += characters.charAt(Math.floor(Math.random() * characters.length));
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
 }
 
-// Function to generate unique codes
-async function generateUniqueCodes(count) {
-  const codes = new Set();
-  const existingCodes = new Set((await ValidCode.find({}, 'code')).map(doc => doc.code));
+// Function to generate a unique code
+async function generateUniqueCode() {
+  let code;
+  let isUnique = false;
   
-  while (codes.size < count) {
-    const code = generateCode();
-    if (!existingCodes.has(code) && !codes.has(code)) {
-      codes.add(code);
+  while (!isUnique) {
+    code = generateCode(6);
+    // Check if code exists in users collection
+    const existingUser = await User.findOne({ code });
+    if (!existingUser) {
+      isUnique = true;
     }
   }
   
-  return Array.from(codes);
+  return code;
 }
 
-// Routes with better error handling
+const User = mongoose.model('User', userSchema);
+
+// Routes
 app.get('/api/users', adminAuth, withDB(async (req, res) => {
   try {
     const users = await User.find()
       .sort({ registeredAt: -1 })
-      .select('-__v') // Exclude version field
+      .select('-__v')
       .lean()
       .exec();
     res.json(users);
@@ -185,6 +206,20 @@ app.get('/api/users', adminAuth, withDB(async (req, res) => {
     console.error('Error fetching users:', error);
     res.status(500).json({ 
       message: 'Error fetching users', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+}));
+
+// Generate a single code
+app.post('/api/codes/generate', adminAuth, withDB(async (req, res) => {
+  try {
+    const code = await generateUniqueCode();
+    res.json({ code });
+  } catch (error) {
+    console.error('Error generating code:', error);
+    res.status(500).json({ 
+      message: 'Error generating code', 
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
@@ -199,7 +234,7 @@ app.post('/api/register', withDB(async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Check if code exists and is not used
+    // Check if code is already used
     const existingUser = await User.findOne({ code: code.toUpperCase() });
     if (existingUser) {
       return res.status(400).json({ 
@@ -244,19 +279,28 @@ app.post('/api/users/login', withDB(async (req, res) => {
     const { code } = req.body;
     
     if (!code) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({ message: 'Missing code' });
     }
 
     const user = await User.findOne({ code: code.toUpperCase() });
     
     if (!user) {
-      return res.status(400).json({ message: 'Invalid code' });
+      return res.status(404).json({ 
+        message: 'Invalid code',
+        code: code.toUpperCase()
+      });
     }
 
-    res.json(user);
+    res.json({ 
+      message: 'Login successful',
+      user: user.toObject({ versionKey: false })
+    });
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Error logging in', error: error.message });
+    res.status(500).json({ 
+      message: 'Error logging in',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 }));
 
@@ -292,26 +336,6 @@ app.post('/api/users/scan', withDB(async (req, res) => {
       message: 'Error scanning ticket',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
-  }
-}));
-
-app.post('/api/codes/generate', adminAuth, withDB(async (req, res) => {
-  try {
-    const count = parseInt(req.body.count) || 5;
-    
-    if (!Number.isInteger(count) || count < 1 || count > 100) {
-      return res.status(400).json({ message: 'Please enter a valid count between 1 and 100' });
-    }
-
-    const generatedCodes = await generateUniqueCodes(count);
-    const validCodes = generatedCodes.map(code => ({ code }));
-    
-    await ValidCode.insertMany(validCodes);
-
-    res.json(validCodes);
-  } catch (error) {
-    console.error('Error generating codes:', error);
-    res.status(500).json({ message: 'Error generating codes', error: error.message });
   }
 }));
 
