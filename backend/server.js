@@ -27,6 +27,11 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Add root route
+app.get('/', (req, res) => {
+  res.json({ message: 'NoonTalks Backend API is running' });
+});
+
 // Admin token
 const ADMIN_TOKEN = 'noontalks2024';
 
@@ -47,7 +52,8 @@ const adminAuth = (req, res, next) => {
 };
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
+const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
+mongoose.connect(mongoUrl)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));
 
