@@ -13,12 +13,12 @@ export const registerUser = async (userData: any) => {
     body: JSON.stringify(userData),
   });
   
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Registration failed');
+    throw new Error(data.message || 'Registration failed');
   }
   
-  return response.json();
+  return data;
 };
 
 export const loginUser = async (code: string) => {
@@ -30,12 +30,12 @@ export const loginUser = async (code: string) => {
     body: JSON.stringify({ code }),
   });
   
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Login failed');
+    throw new Error(data.message || 'Login failed');
   }
   
-  return response.json();
+  return data;
 };
 
 export const scanTicket = async (code: string) => {
@@ -47,32 +47,27 @@ export const scanTicket = async (code: string) => {
     body: JSON.stringify({ code }),
   });
   
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Scan failed');
+    throw new Error(data.message || 'Scan failed');
   }
   
-  return response.json();
+  return data;
 };
 
 export const getUsers = async () => {
-  try {
-    const response = await fetch(`${API_URL}/users`, {
-      headers: {
-        'Authorization': `Bearer ${ADMIN_TOKEN}`,
-      },
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch users');
-    }
-    
-    return response.json();
-  } catch (error) {
-    console.error('Error in getUsers:', error);
-    throw error;
+  const response = await fetch(`${API_URL}/users`, {
+    headers: {
+      'Authorization': `Bearer ${ADMIN_TOKEN}`,
+    },
+  });
+  
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to fetch users');
   }
+  
+  return data;
 };
 
 export const addValidCodes = async (codes: string[]) => {
@@ -95,24 +90,19 @@ export const addValidCodes = async (codes: string[]) => {
 };
 
 export const generateCodes = async (count: number) => {
-  try {
-    const response = await fetch(`${API_URL}/codes/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ADMIN_TOKEN}`,
-      },
-      body: JSON.stringify({ count }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to generate codes');
-    }
-    
-    return response.json();
-  } catch (error) {
-    console.error('Error in generateCodes:', error);
-    throw error;
+  const response = await fetch(`${API_URL}/codes/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ADMIN_TOKEN}`,
+    },
+    body: JSON.stringify({ count }),
+  });
+  
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to generate codes');
   }
+  
+  return data;
 };

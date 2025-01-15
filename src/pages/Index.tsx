@@ -12,7 +12,7 @@ export default function Index() {
         <div className="text-center mb-12">
           <div className="space-y-3">
             <h1 className="text-5xl text-white">
-              Welcome to <span className="font-bold font-['Dancing Script']">Noon Talks</span>
+              Welcome to <span className="font-bold font-dancing">Noon Talks</span>
             </h1>
             <p className="text-xl text-gray-200">
               Register now to get your ticket!

@@ -12,15 +12,19 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Admin token
+const ADMIN_TOKEN = 'noontalks2024';
+
 // Admin authentication middleware
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader) {
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'No authorization header' });
   }
 
   const token = authHeader.split(' ')[1];
-  if (token !== process.env.ADMIN_TOKEN) {
+  if (token !== ADMIN_TOKEN) {
     return res.status(401).json({ message: 'Invalid admin token' });
   }
 
@@ -28,15 +32,9 @@ const adminAuth = (req, res, next) => {
 };
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
-
-const connection = mongoose.connection;
-connection.once('open', () => {
-  console.log("MongoDB database connection established successfully");
-});
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB connection error:", err));
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -44,7 +42,7 @@ const userSchema = new mongoose.Schema({
   email: String,
   phone: String,
   code: { type: String, unique: true },
-  registeredAt: Date,
+  registeredAt: { type: Date, default: Date.now },
   entries: { type: Number, default: 0 }
 });
 
@@ -52,7 +50,8 @@ const User = mongoose.model('User', userSchema);
 
 // Valid Codes Schema
 const validCodeSchema = new mongoose.Schema({
-  code: { type: String, unique: true }
+  code: { type: String, unique: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const ValidCode = mongoose.model('ValidCode', validCodeSchema);
@@ -70,13 +69,15 @@ function generateCode(length = 6) {
 // Function to generate unique codes
 async function generateUniqueCodes(count) {
   const codes = new Set();
+  const existingCodes = new Set((await ValidCode.find({}, 'code')).map(doc => doc.code));
+  
   while (codes.size < count) {
     const code = generateCode();
-    const exists = await ValidCode.findOne({ code });
-    if (!exists) {
+    if (!existingCodes.has(code) && !codes.has(code)) {
       codes.add(code);
     }
   }
+  
   return Array.from(codes);
 }
 
@@ -86,7 +87,8 @@ app.get('/api/users', adminAuth, async (req, res) => {
     const users = await User.find().sort({ registeredAt: -1 });
     res.json(users);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -101,13 +103,18 @@ app.post('/api/users/register', async (req, res) => {
       return res.status(400).json({ message: 'Invalid registration code' });
     }
 
+    // Check if code is already used
+    const existingUser = await User.findOne({ code: upperCode });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Code already used' });
+    }
+
     // Create new user
     const newUser = new User({
       name,
       email,
       phone,
       code: upperCode,
-      registeredAt: new Date(),
       entries: 0
     });
 
@@ -119,7 +126,8 @@ app.post('/api/users/register', async (req, res) => {
 
     res.json(newUser);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -134,7 +142,8 @@ app.post('/api/users/login', async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error logging in:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -152,33 +161,8 @@ app.post('/api/users/scan', async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-app.post('/api/codes', adminAuth, async (req, res) => {
-  try {
-    const { codes } = req.body;
-    
-    if (!Array.isArray(codes) || codes.length === 0) {
-      return res.status(400).json({ message: 'Please enter valid codes' });
-    }
-
-    const validCodes = codes.map(code => {
-      if (typeof code !== 'string' || code.trim().length === 0) {
-        throw new Error('Invalid code format');
-      }
-      return { code: code.trim().toUpperCase() };
-    });
-
-    await ValidCode.insertMany(validCodes);
-    res.json({ message: 'Codes added successfully' });
-  } catch (error) {
-    if (error.code === 11000) {
-      res.status(400).json({ message: 'Some codes already exist' });
-    } else {
-      res.status(400).json({ message: error.message });
-    }
+    console.error('Error scanning ticket:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -196,7 +180,8 @@ app.post('/api/codes/generate', adminAuth, async (req, res) => {
     await ValidCode.insertMany(validCodes);
     res.json({ codes: generatedCodes, message: 'Codes generated successfully' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error generating codes:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
