@@ -10,8 +10,7 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   const allowedOrigins = [
     'https://www.noon-talks.online', 
-    'https://noontalk.vercel.app',
-    'https://noontalks-pynjnlwmj-yassins-projects-ff5455b4.vercel.app', // Your Vercel preview
+    'https://noontalks.vercel.app',
     'http://localhost:5173',  // Vite default
     'http://localhost:4173',  // Vite preview
     'http://localhost:8000',  // Test page
@@ -33,10 +32,9 @@ app.use((req, res, next) => {
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // Handle preflight
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -110,13 +108,13 @@ const connectWithRetry = async () => {
     const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 2000, // Reduce from 5000 to 2000
-      socketTimeoutMS: 10000,         // Reduce from 45000 to 10000
-      connectTimeoutMS: 2000,         // Add explicit connect timeout
-      maxPoolSize: 1,                 // Reduce pool size for serverless
+      serverSelectionTimeoutMS: 2000,
+      socketTimeoutMS: 10000,
+      connectTimeoutMS: 2000,
+      maxPoolSize: 1,
       minPoolSize: 0,
-      maxIdleTimeMS: 5000,           // Close idle connections after 5 seconds
-      keepAlive: false               // Don't keep connection alive
+      maxIdleTimeMS: 5000,
+      keepAlive: false
     };
 
     if (!cachedDb) {
@@ -147,7 +145,6 @@ const withDB = (handler) => async (req, res) => {
       });
     }
     
-    // Send appropriate error response based on error type
     if (error.name === 'ValidationError') {
       return res.status(400).json({ 
         message: 'Validation error', 
@@ -205,7 +202,6 @@ async function generateUniqueCode() {
   
   while (!isUnique) {
     code = generateCode(6);
-    // Check if code exists in users collection
     const existingUser = await User.findOne({ code });
     if (!existingUser) {
       isUnique = true;
@@ -253,12 +249,10 @@ app.post('/api/register', withDB(async (req, res) => {
   try {
     const { name, email, phone, code } = req.body;
 
-    // Validate required fields
     if (!name || !email || !code) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Check if code is already used
     const existingUser = await User.findOne({ code: code.toUpperCase() });
     if (existingUser) {
       return res.status(400).json({ 
@@ -267,7 +261,6 @@ app.post('/api/register', withDB(async (req, res) => {
       });
     }
 
-    // Create new user
     const user = new User({
       name,
       email,
@@ -345,7 +338,6 @@ app.post('/api/users/scan', withDB(async (req, res) => {
       });
     }
 
-    // Update entries count
     user.entries += 1;
     user.lastEntry = new Date();
     await user.save();
@@ -368,12 +360,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Add startup logging
-app.listen(process.env.PORT || 3000, () => {
-  console.log('Server is running on port', process.env.PORT || 3000);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('MongoDB Host:', process.env.MONGO_HOST);
-});
+const port = process.env.PORT || 3000;
 
-// Export for Vercel
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
 module.exports = app;
