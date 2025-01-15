@@ -5,46 +5,38 @@ require('dotenv').config();
 
 const app = express();
 
-// Custom CORS middleware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    'https://www.noon-talks.online', 
-    'https://noontalks.vercel.app',
-    'http://localhost:5173',  // Vite default
-    'http://localhost:4173',  // Vite preview
-    'http://localhost:8000',  // Test page
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:4173',
-    'http://127.0.0.1:8000'
-  ];
-  
-  // In development, allow all origins
-  if (process.env.NODE_ENV === 'development') {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  } else if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    // For Vercel preview deployments
-    if (origin && origin.endsWith('.vercel.app')) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://www.noon-talks.online',
+      'https://noontalks.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:4173',
+      'http://localhost:8000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:4173',
+      'http://127.0.0.1:8000'
+    ];
+
+    // In development, allow all origins
+    if (!origin || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+      return;
     }
-  }
-  
-  // Important! Add these headers for preflight requests
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
 
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+};
 
-  next();
-});
-
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Add root route
