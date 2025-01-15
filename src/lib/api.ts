@@ -54,7 +54,12 @@ export const scanTicket = async (code: string) => {
 };
 
 export const getUsers = async () => {
-  const response = await fetch(`${API_URL}/users`);
+  const adminToken = sessionStorage.getItem('adminToken');
+  const response = await fetch(`${API_URL}/users`, {
+    headers: {
+      'Authorization': `Bearer ${adminToken}`,
+    },
+  });
   
   if (!response.ok) {
     const error = await response.json();
@@ -65,10 +70,12 @@ export const getUsers = async () => {
 };
 
 export const addValidCodes = async (codes: string[]) => {
+  const adminToken = sessionStorage.getItem('adminToken');
   const response = await fetch(`${API_URL}/codes`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${adminToken}`,
     },
     body: JSON.stringify({ codes }),
   });
