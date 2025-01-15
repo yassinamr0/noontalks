@@ -1,42 +1,20 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Index from '@/pages/Index';
-import Login from '@/pages/Login';
-import Admin from '@/pages/Admin';
-import AdminLogin from '@/pages/AdminLogin';
-import Ticket from '@/pages/Ticket';
-import Validate from '@/pages/Validate';
-import { Toaster } from 'sonner';
-
-function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
-  const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
-  const adminToken = sessionStorage.getItem('adminToken');
-
-  if (!isAdmin || !adminToken) {
-    return <Navigate to="/admin/login" />;
-  }
-
-  return <>{children}</>;
-}
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import Index from "@/pages/Index";
+import Login from "@/pages/Login";
+import Admin from "@/pages/Admin";
+import Ticket from "@/pages/Ticket";
 
 function App() {
   return (
     <Router>
-      <Toaster position="top-center" richColors />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedAdminRoute>
-              <Admin />
-            </ProtectedAdminRoute>
-          } 
-        />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/ticket" element={<Ticket />} />
-        <Route path="/validate" element={<Validate />} />
       </Routes>
+      <Toaster />
     </Router>
   );
 }
