@@ -120,7 +120,6 @@ export const generateCodes = async (count: number = 1): Promise<{ code: string }
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify({ count }),
     credentials: 'include'
   });
 
