@@ -103,7 +103,7 @@ async function generateUniqueCodes(count) {
 }
 
 // Routes
-app.get('/api/users', adminAuth, async (req, res) => {
+app.get('/users', adminAuth, async (req, res) => {
   try {
     const users = await User.find().sort({ registeredAt: -1 });
     res.json(users);
@@ -113,7 +113,7 @@ app.get('/api/users', adminAuth, async (req, res) => {
   }
 });
 
-app.post('/api/users/register', async (req, res) => {
+app.post('/users/register', async (req, res) => {
   try {
     const { name, email, phone, code } = req.body;
     const upperCode = code.toUpperCase();
@@ -152,7 +152,7 @@ app.post('/api/users/register', async (req, res) => {
   }
 });
 
-app.post('/api/users/login', async (req, res) => {
+app.post('/users/login', async (req, res) => {
   try {
     const { code } = req.body;
     const user = await User.findOne({ code: code.toUpperCase() });
@@ -168,7 +168,7 @@ app.post('/api/users/login', async (req, res) => {
   }
 });
 
-app.post('/api/users/scan', async (req, res) => {
+app.post('/users/scan', async (req, res) => {
   try {
     const { code } = req.body;
     const user = await User.findOne({ code: code.toUpperCase() });
@@ -187,7 +187,7 @@ app.post('/api/users/scan', async (req, res) => {
   }
 });
 
-app.post('/api/codes/generate', adminAuth, async (req, res) => {
+app.post('/codes/generate', adminAuth, async (req, res) => {
   try {
     const { count = 1 } = req.body;
     
@@ -199,7 +199,8 @@ app.post('/api/codes/generate', adminAuth, async (req, res) => {
     const validCodes = generatedCodes.map(code => ({ code }));
     
     await ValidCode.insertMany(validCodes);
-    res.json({ codes: generatedCodes, message: 'Codes generated successfully' });
+
+    res.json(validCodes);
   } catch (error) {
     console.error('Error generating codes:', error);
     res.status(500).json({ message: error.message });
@@ -207,7 +208,7 @@ app.post('/api/codes/generate', adminAuth, async (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 

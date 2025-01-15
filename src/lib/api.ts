@@ -1,5 +1,5 @@
 // Backend API URL
-const API_URL = 'https://noontalks-backend.vercel.app/api';
+const API_URL = 'https://noontalks-backend.vercel.app';
 
 const ADMIN_TOKEN = 'noontalks2024';
 
