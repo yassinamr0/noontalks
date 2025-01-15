@@ -28,6 +28,7 @@ export const registerUser = async (userData: any) => {
       method: 'POST',
       headers: defaultHeaders,
       body: JSON.stringify(userData),
+      credentials: 'include'
     });
     return handleResponse(response);
   } catch (error) {
@@ -38,10 +39,11 @@ export const registerUser = async (userData: any) => {
 
 export const loginUser = async (code: string) => {
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/users/login`, {
       method: 'POST',
       headers: defaultHeaders,
       body: JSON.stringify({ code }),
+      credentials: 'include'
     });
     return handleResponse(response);
   } catch (error) {
@@ -52,10 +54,11 @@ export const loginUser = async (code: string) => {
 
 export const scanTicket = async (code: string) => {
   try {
-    const response = await fetch(`${API_URL}/scan`, {
+    const response = await fetch(`${API_URL}/users/scan`, {
       method: 'POST',
       headers: defaultHeaders,
       body: JSON.stringify({ code }),
+      credentials: 'include'
     });
     return handleResponse(response);
   } catch (error) {
@@ -69,6 +72,7 @@ export const getUsers = async () => {
     const response = await fetch(`${API_URL}/users`, {
       method: 'GET',
       headers: adminHeaders,
+      credentials: 'include'
     });
     return handleResponse(response);
   } catch (error) {
@@ -78,15 +82,12 @@ export const getUsers = async () => {
 };
 
 export const addValidCodes = async (codes: string[]) => {
-  const adminToken = sessionStorage.getItem('adminToken') || 'noontalks2024';
   try {
-    const response = await fetch(`${API_URL}/codes`, {
+    const response = await fetch(`${API_URL}/codes/generate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminToken}`,
-      },
-      body: JSON.stringify({ codes }),
+      headers: adminHeaders,
+      body: JSON.stringify({ count: codes.length }),
+      credentials: 'include'
     });
     return handleResponse(response);
   } catch (error) {
@@ -101,6 +102,7 @@ export const generateCodes = async (count: number) => {
       method: 'POST',
       headers: adminHeaders,
       body: JSON.stringify({ count }),
+      credentials: 'include'
     });
     return handleResponse(response);
   } catch (error) {

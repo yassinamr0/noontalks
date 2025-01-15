@@ -314,7 +314,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
+// Add startup logging
+app.listen(process.env.PORT || 3000, () => {
+  console.log('Server is running on port', process.env.PORT || 3000);
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('MongoDB Host:', process.env.MONGO_HOST);
 });
+
+// Export for Vercel
+module.exports = app;
