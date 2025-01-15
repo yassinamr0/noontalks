@@ -125,7 +125,7 @@ export default function Admin() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-black">Admin Panel</h1>
+            <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
             <Button 
               onClick={handleLogout}
               variant="destructive"
