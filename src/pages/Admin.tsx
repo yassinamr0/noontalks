@@ -24,9 +24,18 @@ export default function Admin() {
   useEffect(() => {
     const isAdmin = sessionStorage.getItem("isAdmin") === "true";
     if (isAdmin) {
-      fetchUsers();
+      fetchUsers().catch(error => {
+        console.error("Error in initial fetch:", error);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Failed to fetch users");
+        }
+      });
+    } else {
+      navigate("/admin/login");
     }
-  }, []);
+  }, [navigate]);
 
   const fetchUsers = async () => {
     try {

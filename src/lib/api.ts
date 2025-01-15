@@ -2,6 +2,8 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://noontalks.vercel.app/api'
   : 'http://localhost:5000/api';
 
+const ADMIN_TOKEN = 'noontalks2024';
+
 export const registerUser = async (userData: any) => {
   const response = await fetch(`${API_URL}/users/register`, {
     method: 'POST',
@@ -54,19 +56,23 @@ export const scanTicket = async (code: string) => {
 };
 
 export const getUsers = async () => {
-  const adminToken = sessionStorage.getItem('adminToken') || 'noontalks2024';
-  const response = await fetch(`${API_URL}/users`, {
-    headers: {
-      'Authorization': `Bearer ${adminToken}`,
-    },
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch users');
+  try {
+    const response = await fetch(`${API_URL}/users`, {
+      headers: {
+        'Authorization': `Bearer ${ADMIN_TOKEN}`,
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch users');
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error in getUsers:', error);
+    throw error;
   }
-  
-  return response.json();
 };
 
 export const addValidCodes = async (codes: string[]) => {
@@ -89,20 +95,24 @@ export const addValidCodes = async (codes: string[]) => {
 };
 
 export const generateCodes = async (count: number) => {
-  const adminToken = sessionStorage.getItem('adminToken') || 'noontalks2024';
-  const response = await fetch(`${API_URL}/codes/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${adminToken}`,
-    },
-    body: JSON.stringify({ count }),
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to generate codes');
+  try {
+    const response = await fetch(`${API_URL}/codes/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ADMIN_TOKEN}`,
+      },
+      body: JSON.stringify({ count }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to generate codes');
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error in generateCodes:', error);
+    throw error;
   }
-  
-  return response.json();
 };
