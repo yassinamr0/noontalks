@@ -9,17 +9,14 @@ interface AdminLoginResponse extends ApiResponse {
   token: string;
 }
 
-interface GenerateCodeResponse extends ApiResponse {
-  codes: string[];
-}
-
 interface User {
   _id: string;
   name: string;
   email: string;
-  code: string;
+  phone?: string;
   entries: number;
   createdAt: string;
+  lastEntry?: string;
 }
 
 interface ScanTicketResponse extends ApiResponse {
@@ -61,15 +58,15 @@ export const adminLogin = async (password: string): Promise<AdminLoginResponse> 
   }
 };
 
-export const generateCodes = async (count: number): Promise<GenerateCodeResponse> => {
+export const addUser = async (userData: { name?: string; email: string; phone?: string }): Promise<User> => {
   try {
     const response = await fetch(
-      `${API_URL}/admin/generate-codes`,
-      fetchOptions('POST', { count })
+      `${API_URL}/admin/add-user`,
+      fetchOptions('POST', userData)
     );
-    return handleResponse<GenerateCodeResponse>(response);
+    return handleResponse<User>(response);
   } catch (error) {
-    console.error('Generate codes error:', error);
+    console.error('Add user error:', error);
     throw error;
   }
 };
@@ -87,44 +84,30 @@ export const getUsers = async (): Promise<User[]> => {
   }
 };
 
-export const scanTicket = async (code: string): Promise<ScanTicketResponse> => {
+export const loginUser = async (email: string): Promise<User> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/auth/login`,
+      fetchOptions('POST', { email })
+    );
+    const data = await handleResponse<{ user: User }>(response);
+    sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+    return data.user;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
+
+export const scanTicket = async (email: string): Promise<ScanTicketResponse> => {
   try {
     const response = await fetch(
       `${API_URL}/admin/scan`,
-      fetchOptions('POST', { code })
+      fetchOptions('POST', { email })
     );
     return handleResponse<ScanTicketResponse>(response);
   } catch (error) {
     console.error('Scan ticket error:', error);
-    throw error;
-  }
-};
-
-export const loginUser = async (code: string): Promise<User> => {
-  try {
-    const response = await fetch(
-      `${API_URL}/login`,
-      fetchOptions('POST', { code })
-    );
-    const data = await handleResponse<User>(response);
-    sessionStorage.setItem('user', JSON.stringify(data));
-    return data;
-  } catch (error) {
-    console.error('User login error:', error);
-    throw error;
-  }
-};
-
-export const registerUser = async (userData: { name: string; email: string; code: string }): Promise<User> => {
-  try {
-    const response = await fetch(
-      `${API_URL}/register`,
-      fetchOptions('POST', userData)
-    );
-    const data = await handleResponse<User>(response);
-    return data;
-  } catch (error) {
-    console.error('Registration error:', error);
     throw error;
   }
 };

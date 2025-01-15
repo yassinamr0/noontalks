@@ -3,21 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QRScanner from "@/components/QRScanner";
-import { generateCodes, getUsers } from '@/lib/api';
+import { addUser, getUsers } from '@/lib/api';
 import { toast } from 'sonner';
+import { sendWelcomeEmail } from '@/lib/email';
 import Navbar from "@/components/Navbar";
 
 interface User {
+  _id: string;
   name: string;
   email: string;
-  code: string;
+  phone?: string;
   entries: number;
-  registeredAt: string;
+  createdAt: string;
   lastEntry?: string;
 }
 
 export default function Admin() {
-  const [generatedCode, setGeneratedCode] = useState<string>("");
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
   const [users, setUsers] = useState<User[]>([]);
   const navigate = useNavigate();
 
@@ -51,18 +57,43 @@ export default function Admin() {
     }
   };
 
-  const handleGenerateCode = async () => {
+  const handleAddUser = async () => {
     try {
-      const result = await generateCodes(1);
-      setGeneratedCode(result.code);
-      toast.success("Code generated successfully");
-      await fetchUsers(); // Refresh the user list
+      if (!newUser.email) {
+        toast.error("Email is required");
+        return;
+      }
+
+      // Add user to database
+      const user = await addUser(newUser);
+      
+      // Send welcome email
+      try {
+        await sendWelcomeEmail({
+          to_email: user.email,
+          to_name: user.name,
+        });
+        toast.success("User added and welcome email sent!");
+      } catch (emailError) {
+        console.error("Error sending welcome email:", emailError);
+        toast.error("User added but failed to send welcome email");
+      }
+      
+      // Reset form
+      setNewUser({
+        name: "",
+        email: "",
+        phone: ""
+      });
+      
+      // Refresh user list
+      await fetchUsers();
     } catch (error) {
-      console.error("Error generating code:", error);
+      console.error("Error adding user:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("Failed to generate code");
+        toast.error("Failed to add user");
       }
     }
   };
@@ -83,8 +114,14 @@ export default function Admin() {
     });
   };
 
+  const openTicket = (email: string) => {
+    // Open ticket in new tab
+    const ticketUrl = `/ticket?email=${encodeURIComponent(email)}`;
+    window.open(ticketUrl, '_blank');
+  };
+
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
@@ -99,23 +136,35 @@ export default function Admin() {
           </div>
 
           <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-[#542c6a]">Generate Registration Code</h2>
+            <h2 className="text-xl font-semibold mb-4 text-[#542c6a]">Add New User</h2>
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
                   type="text"
-                  value={generatedCode}
-                  readOnly
-                  placeholder="Generated code will appear here"
-                  className="font-mono"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Name (optional)"
                 />
-                <Button 
-                  onClick={handleGenerateCode}
-                  className="bg-[#542c6a] hover:bg-[#3f1f4f]"
-                >
-                  Generate Code
-                </Button>
+                <Input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Email (required)"
+                  required
+                />
+                <Input
+                  type="tel"
+                  value={newUser.phone}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Phone (optional)"
+                />
               </div>
+              <Button 
+                onClick={handleAddUser}
+                className="bg-[#542c6a] hover:bg-[#3f1f4f] w-full"
+              >
+                Add User
+              </Button>
             </div>
           </div>
 
@@ -127,21 +176,31 @@ export default function Admin() {
                   <tr className="border-b">
                     <th className="text-left p-2">Name</th>
                     <th className="text-left p-2">Email</th>
-                    <th className="text-left p-2">Code</th>
+                    <th className="text-left p-2">Phone</th>
                     <th className="text-left p-2">Entries</th>
                     <th className="text-left p-2">Registered</th>
                     <th className="text-left p-2">Last Entry</th>
+                    <th className="text-left p-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user, index) => (
                     <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{user.name}</td>
+                      <td className="p-2">{user.name || '-'}</td>
                       <td className="p-2">{user.email}</td>
-                      <td className="p-2 font-mono">{user.code}</td>
+                      <td className="p-2">{user.phone || '-'}</td>
                       <td className="p-2">{user.entries}</td>
-                      <td className="p-2">{formatDate(user.registeredAt)}</td>
+                      <td className="p-2">{formatDate(user.createdAt)}</td>
                       <td className="p-2">{user.lastEntry ? formatDate(user.lastEntry) : '-'}</td>
+                      <td className="p-2">
+                        <Button
+                          onClick={() => openTicket(user.email)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          View Ticket
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

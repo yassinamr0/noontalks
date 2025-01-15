@@ -30,7 +30,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
+    <div className="min-h-screen animated-gradient flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center text-[#542c6a]">Admin Login</h1>
         

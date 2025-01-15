@@ -2,61 +2,33 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
+import { loginUser } from '@/lib/api';
 import Navbar from "@/components/Navbar";
-import { loginUser } from "@/lib/api";
-
-interface LoginData {
-  code: string;
-}
 
 export default function Login() {
-  const [formData, setFormData] = useState<LoginData>({
-    code: "",
-  });
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.code) {
-      toast({
-        title: "Error",
-        description: "Please enter your registration code",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    
     try {
-      const user = await loginUser(formData.code);
-      
-      // Store user in session
-      sessionStorage.setItem("currentUser", JSON.stringify(user));
-      
-      toast({
-        title: "Success",
-        description: "Login successful!",
-      });
-
-      // Wait for toast to show before navigating
-      setTimeout(() => {
-        navigate("/ticket");
-      }, 1000);
-    } catch (error: any) {
-      console.error("Error during login:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Login failed. Please try again.",
-        variant: "destructive",
-      });
+      const user = await loginUser(email);
+      toast.success("Login successful!");
+      navigate(`/ticket?email=${encodeURIComponent(email)}`);
+    } catch (error) {
+      console.error('Login error:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Login failed');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
@@ -67,37 +39,27 @@ export default function Login() {
               className="mx-auto h-16 w-auto mb-4"
             />
             <h2 className="text-2xl font-bold text-[#542c6a]">Login</h2>
+            <p className="text-gray-600 mt-2">Enter your email to view your ticket</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="code" className="text-sm font-medium">Registration Code</Label>
               <Input
-                id="code"
-                name="code"
-                value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                className="mt-1"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 required
-                autoComplete="off"
+                className="w-full"
               />
             </div>
 
-            <Button
+            <Button 
               type="submit"
-              className="w-full bg-[#542c6a] hover:bg-opacity-90 text-white mt-6"
+              className="w-full bg-[#542c6a] hover:bg-[#3f1f4f]"
             >
-              Login
+              View Ticket
             </Button>
-
-            <div className="text-center mt-4">
-              <p className="text-sm text-gray-600">
-                Don't have a code?{" "}
-                <a href="/register" className="text-[#542c6a] hover:underline">
-                  Register here
-                </a>
-              </p>
-            </div>
           </form>
         </div>
       </div>
