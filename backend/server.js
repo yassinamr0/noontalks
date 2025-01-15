@@ -5,22 +5,20 @@ require('dotenv').config();
 
 const app = express();
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'noon2024';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://your-mongodb-uri';
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
+
+// Construct MongoDB URI from environment variables
+const MONGODB_URI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
 
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       'https://www.noon-talks.online',
-      'https://noontalks.vercel.app',
+      'https://noon-talks.online',
       'http://localhost:5173',
       'http://localhost:4173',
-      'http://localhost:8000',
-      'http://localhost:8000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:4173',
-      'http://127.0.0.1:8000'
+      'http://localhost:5000'
     ];
     
     if (!origin || allowedOrigins.includes(origin)) {
