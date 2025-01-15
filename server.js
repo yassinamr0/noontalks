@@ -65,6 +65,37 @@ app.post('/api/admin/add-user', adminAuth, async (req, res) => {
 
     const qrCode = Math.random().toString(36).substring(7);
     const user = await User.create({ name, email, phone, qrCode });
+
+    // Send welcome email
+    try {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Welcome to Noon Talks!',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #542c6a;">Welcome to Noon Talks!</h1>
+            <p>Hello ${name},</p>
+            <p>Thank you for registering for our event! You can now log in to view your ticket using your email address.</p>
+            <p>Best regards,<br>Noon Talks Team</p>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+    }
+
     res.json(user);
   } catch (error) {
     console.error('Error adding user:', error);
@@ -124,51 +155,13 @@ app.post('/api/user/login', async (req, res) => {
   }
 });
 
-app.post('/api/admin/send-email', adminAuth, async (req, res) => {
-  try {
-    const { to, name } = req.body;
-
-    // Send email using nodemailer
-    const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: to,
-      subject: 'Welcome to Noon Talks!',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #542c6a;">Welcome to Noon Talks!</h1>
-          <p>Hello ${name},</p>
-          <p>Thank you for registering for our event! You can now log in to view your ticket using your email address.</p>
-          <p>Best regards,<br>Noon Talks Team</p>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ message: 'Email sent successfully' });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ message: 'Failed to send email' });
-  }
-});
-
 // Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static('dist'));
 
 // Handle React routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Export for Vercel
+module.exports = app;
