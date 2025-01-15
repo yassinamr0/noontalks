@@ -104,10 +104,28 @@
   }
 }
 
+@keyframes homeGradient {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
 .animated-gradient {
   background: linear-gradient(-45deg, #542c6a, #3f1f4f, #2a1436, #542c6a);
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;
+}
+
+.home-gradient {
+  background: linear-gradient(135deg, #542c6a, #c701a9, #542c6a);
+  background-size: 200% 200%;
+  animation: homeGradient 20s ease infinite;
 }
 
 @layer base {

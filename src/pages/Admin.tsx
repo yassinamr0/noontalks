@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import QRScanner from "@/components/QRScanner";
 import { addUser, getUsers } from '@/lib/api';
 import { toast } from 'sonner';
-import { sendWelcomeEmail } from '@/lib/email';
 import Navbar from "@/components/Navbar";
 
 interface User {
@@ -69,11 +68,23 @@ export default function Admin() {
       
       // Send welcome email
       try {
-        await sendWelcomeEmail({
-          to_email: user.email,
-          to_name: user.name,
+        const emailResponse = await fetch(`${API_URL}/admin/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+          },
+          body: JSON.stringify({
+            to: user.email,
+            name: user.name,
+          })
         });
-        toast.success("User added and welcome email sent!");
+        
+        if (emailResponse.ok) {
+          toast.success("User added and welcome email sent!");
+        } else {
+          toast.error("User added but failed to send welcome email");
+        }
       } catch (emailError) {
         console.error("Error sending welcome email:", emailError);
         toast.error("User added but failed to send welcome email");
@@ -126,7 +137,7 @@ export default function Admin() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-[#542c6a]">Admin Panel</h1>
+            <h1 className="text-2xl font-bold text-black">Admin Panel</h1>
             <Button 
               onClick={handleLogout}
               variant="destructive"
@@ -136,7 +147,7 @@ export default function Admin() {
           </div>
 
           <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-[#542c6a]">Add New User</h2>
+            <h2 className="text-xl font-semibold mb-4 text-black">Add New User</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
@@ -161,7 +172,7 @@ export default function Admin() {
               </div>
               <Button 
                 onClick={handleAddUser}
-                className="bg-[#542c6a] hover:bg-[#3f1f4f] w-full"
+                className="bg-black hover:bg-gray-700 w-full"
               >
                 Add User
               </Button>
@@ -169,7 +180,7 @@ export default function Admin() {
           </div>
 
           <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-[#542c6a]">Registered Users</h2>
+            <h2 className="text-xl font-semibold mb-4 text-black">Registered Users</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -209,7 +220,7 @@ export default function Admin() {
           </div>
 
           <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-[#542c6a]">Scan QR Code</h2>
+            <h2 className="text-xl font-semibold mb-4 text-black">Scan QR Code</h2>
             <QRScanner />
           </div>
         </div>
