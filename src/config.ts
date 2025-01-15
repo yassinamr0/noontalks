@@ -1,2 +1,2 @@
 // Backend API URL
-export const API_URL = 'https://noontalks-backend.vercel.app/api';
+export const API_URL = 'https://noontalks.vercel.app/api';
