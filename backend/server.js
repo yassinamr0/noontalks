@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // Add root route
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({ message: 'NoonTalks Backend API is running' });
 });
 
@@ -52,11 +52,38 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// MongoDB connection
-const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
-mongoose.connect(mongoUrl)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB connection error:", err));
+// MongoDB connection with retry logic
+const connectWithRetry = async () => {
+  const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
+  
+  try {
+    await mongoose.connect(mongoUrl, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+    });
+    console.log("MongoDB connected successfully");
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+    console.log('Retrying in 5 seconds...');
+    setTimeout(connectWithRetry, 5000);
+  }
+};
+
+// Initial connection
+connectWithRetry();
+
+// Handle connection errors
+mongoose.connection.on('error', err => {
+  console.error('MongoDB connection error:', err);
+  setTimeout(connectWithRetry, 5000);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected. Attempting to reconnect...');
+  setTimeout(connectWithRetry, 5000);
+});
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -104,58 +131,66 @@ async function generateUniqueCodes(count) {
 }
 
 // Routes
-app.get('/users', adminAuth, async (req, res) => {
+app.get('/api/users', adminAuth, async (req, res) => {
   try {
     const users = await User.find().sort({ registeredAt: -1 });
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 });
 
-app.post('/users/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   try {
     const { name, email, phone, code } = req.body;
-    const upperCode = code.toUpperCase();
+
+    // Validate input
+    if (!name || !email || !phone || !code) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
 
     // Check if code exists
-    const validCode = await ValidCode.findOne({ code: upperCode });
+    const validCode = await ValidCode.findOne({ code: code.toUpperCase() });
     if (!validCode) {
       return res.status(400).json({ message: 'Invalid registration code' });
     }
 
     // Check if code is already used
-    const existingUser = await User.findOne({ code: upperCode });
+    const existingUser = await User.findOne({ code: code.toUpperCase() });
     if (existingUser) {
       return res.status(400).json({ message: 'Code already used' });
     }
 
     // Create new user
-    const newUser = new User({
+    const user = new User({
       name,
       email,
       phone,
-      code: upperCode,
+      code: code.toUpperCase(),
       entries: 0
     });
 
-    // Save user
-    await newUser.save();
+    await user.save();
 
     // Remove used code
-    await ValidCode.deleteOne({ code: upperCode });
+    await ValidCode.deleteOne({ code: code.toUpperCase() });
 
-    res.json(newUser);
+    res.status(201).json({ message: 'Registration successful', user });
   } catch (error) {
     console.error('Error registering user:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error registering user', error: error.message });
   }
 });
 
-app.post('/users/login', async (req, res) => {
+app.post('/api/users/login', async (req, res) => {
   try {
     const { code } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
     const user = await User.findOne({ code: code.toUpperCase() });
     
     if (!user) {
@@ -165,13 +200,18 @@ app.post('/users/login', async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error logging in', error: error.message });
   }
 });
 
-app.post('/users/scan', async (req, res) => {
+app.post('/api/users/scan', async (req, res) => {
   try {
     const { code } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
     const user = await User.findOne({ code: code.toUpperCase() });
     
     if (!user) {
@@ -184,13 +224,13 @@ app.post('/users/scan', async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error scanning ticket:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error scanning ticket', error: error.message });
   }
 });
 
-app.post('/codes/generate', adminAuth, async (req, res) => {
+app.post('/api/codes/generate', adminAuth, async (req, res) => {
   try {
-    const { count = 1 } = req.body;
+    const count = parseInt(req.body.count) || 5;
     
     if (!Number.isInteger(count) || count < 1 || count > 100) {
       return res.status(400).json({ message: 'Please enter a valid count between 1 and 100' });
@@ -204,12 +244,12 @@ app.post('/codes/generate', adminAuth, async (req, res) => {
     res.json(validCodes);
   } catch (error) {
     console.error('Error generating codes:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error generating codes', error: error.message });
   }
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
