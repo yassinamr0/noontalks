@@ -57,6 +57,29 @@ const validCodeSchema = new mongoose.Schema({
 
 const ValidCode = mongoose.model('ValidCode', validCodeSchema);
 
+// Function to generate a random code
+function generateCode(length = 6) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return code;
+}
+
+// Function to generate unique codes
+async function generateUniqueCodes(count) {
+  const codes = new Set();
+  while (codes.size < count) {
+    const code = generateCode();
+    const exists = await ValidCode.findOne({ code });
+    if (!exists) {
+      codes.add(code);
+    }
+  }
+  return Array.from(codes);
+}
+
 // Routes
 app.get('/api/users', adminAuth, async (req, res) => {
   try {
@@ -156,6 +179,24 @@ app.post('/api/codes', adminAuth, async (req, res) => {
     } else {
       res.status(400).json({ message: error.message });
     }
+  }
+});
+
+app.post('/api/codes/generate', adminAuth, async (req, res) => {
+  try {
+    const { count = 1 } = req.body;
+    
+    if (!Number.isInteger(count) || count < 1 || count > 100) {
+      return res.status(400).json({ message: 'Please enter a valid count between 1 and 100' });
+    }
+
+    const generatedCodes = await generateUniqueCodes(count);
+    const validCodes = generatedCodes.map(code => ({ code }));
+    
+    await ValidCode.insertMany(validCodes);
+    res.json({ codes: generatedCodes, message: 'Codes generated successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 

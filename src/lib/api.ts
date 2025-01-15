@@ -87,3 +87,22 @@ export const addValidCodes = async (codes: string[]) => {
   
   return response.json();
 };
+
+export const generateCodes = async (count: number) => {
+  const adminToken = sessionStorage.getItem('adminToken') || 'noontalks2024';
+  const response = await fetch(`${API_URL}/codes/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${adminToken}`,
+    },
+    body: JSON.stringify({ count }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to generate codes');
+  }
+  
+  return response.json();
+};
