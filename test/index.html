@@ -38,7 +38,8 @@
     <div id="debug" class="error"></div>
 
     <script>
-        const API_URL = 'https://noontalks-backend.vercel.app';
+        // Production backend URL
+        const API_URL = 'https://noontalks-backend.vercel.app/api';
         const ADMIN_TOKEN = 'noontalks2024';
 
         async function makeRequest(method, url, body = null) {
