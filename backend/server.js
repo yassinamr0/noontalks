@@ -17,6 +17,7 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:4173',
       'http://localhost:8000',
+      'http://localhost:8000',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:4173',
       'http://127.0.0.1:8000'
@@ -70,20 +71,14 @@ const adminAuth = (req, res, next) => {
 };
 
 // MongoDB connection
-async function connectDB() {
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-}
-
-connectDB();
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((error) => {
+  console.error('MongoDB connection error:', error);
+});
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -117,7 +112,7 @@ async function generateUniqueCode(length = 6) {
 }
 
 // Routes
-app.post('/admin/login', (req, res) => {
+app.post('/admin/auth/login', (req, res) => {
   const { password } = req.body;
   
   if (password !== ADMIN_TOKEN) {
@@ -140,6 +135,8 @@ app.post('/admin/generate-codes', adminAuth, async (req, res) => {
     
     for (let i = 0; i < count; i++) {
       const code = await generateUniqueCode();
+      const user = new User({ code });
+      await user.save();
       codes.push(code);
     }
 
@@ -169,7 +166,7 @@ app.get('/users', adminAuth, async (req, res) => {
   }
 });
 
-app.post('/register', async (req, res) => {
+app.post('/users/register', async (req, res) => {
   try {
     const { name, email, code } = req.body;
 
@@ -212,7 +209,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/users/login', async (req, res) => {
   try {
     const { code } = req.body;
     
@@ -283,6 +280,5 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Export for Vercel
+module.exports = app;

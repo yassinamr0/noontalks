@@ -49,7 +49,7 @@ const fetchOptions = (method: string, body?: any) => ({
 
 export const adminLogin = async (password: string): Promise<AdminLoginResponse> => {
   try {
-    const response = await fetch(`${API_URL}/admin/login`, fetchOptions('POST', { password }));
+    const response = await fetch(`${API_URL}/admin/auth/login`, fetchOptions('POST', { password }));
     const data = await handleResponse<AdminLoginResponse>(response);
     sessionStorage.setItem('adminToken', data.token);
     sessionStorage.setItem('isAdmin', 'true');
@@ -99,7 +99,7 @@ export const scanTicket = async (code: string): Promise<ScanTicketResponse> => {
 export const loginUser = async (code: string): Promise<User> => {
   try {
     const response = await fetch(
-      `${API_URL}/login`,
+      `${API_URL}/users/login`,
       fetchOptions('POST', { code })
     );
     const data = await handleResponse<User>(response);
@@ -107,6 +107,20 @@ export const loginUser = async (code: string): Promise<User> => {
     return data;
   } catch (error) {
     console.error('User login error:', error);
+    throw error;
+  }
+};
+
+export const registerUser = async (userData: { name: string; email: string; code: string }): Promise<User> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/users/register`,
+      fetchOptions('POST', userData)
+    );
+    const data = await handleResponse<User>(response);
+    return data;
+  } catch (error) {
+    console.error('Registration error:', error);
     throw error;
   }
 };
