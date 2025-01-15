@@ -1,6 +1,7 @@
 import emailjs from '@emailjs/browser';
 
 interface EmailParams {
+  [key: string]: string;
   to_email: string;
   to_name: string;
 }

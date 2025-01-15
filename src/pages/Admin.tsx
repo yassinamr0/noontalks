@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QRScanner from "@/components/QRScanner";
-import { addUser, getUsers, sendWelcomeEmail } from '@/lib/api';
+import { addUser, getUsers } from '@/lib/api';
+import { sendWelcomeEmail } from '@/lib/email';
 import { toast } from 'sonner';
 import Navbar from "@/components/Navbar";
 
