@@ -52,38 +52,42 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// MongoDB connection with retry logic
+// MongoDB connection with optimized settings for serverless
 const connectWithRetry = async () => {
   const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
   
   try {
-    await mongoose.connect(mongoUrl, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-    });
-    console.log("MongoDB connected successfully");
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(mongoUrl, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 3000, // Lower timeout for serverless
+        socketTimeoutMS: 10000, // Lower socket timeout
+        maxPoolSize: 10, // Limit pool size for serverless
+        minPoolSize: 0, // Allow pool to shrink to 0
+      });
+      console.log("MongoDB connected successfully");
+    }
+    return mongoose.connection;
   } catch (err) {
     console.error('Failed to connect to MongoDB:', err);
-    console.log('Retrying in 5 seconds...');
-    setTimeout(connectWithRetry, 5000);
+    throw err; // Let the route handler catch this
   }
 };
 
-// Initial connection
-connectWithRetry();
-
-// Handle connection errors
-mongoose.connection.on('error', err => {
-  console.error('MongoDB connection error:', err);
-  setTimeout(connectWithRetry, 5000);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected. Attempting to reconnect...');
-  setTimeout(connectWithRetry, 5000);
-});
+// Wrap route handlers with connection check
+const withDB = (handler) => async (req, res) => {
+  try {
+    await connectWithRetry();
+    return handler(req, res);
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(500).json({ 
+      message: 'Database connection error', 
+      error: error.message 
+    });
+  }
+};
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -130,18 +134,18 @@ async function generateUniqueCodes(count) {
   return Array.from(codes);
 }
 
-// Routes
-app.get('/api/users', adminAuth, async (req, res) => {
+// Routes with DB connection wrapper
+app.get('/api/users', adminAuth, withDB(async (req, res) => {
   try {
-    const users = await User.find().sort({ registeredAt: -1 });
+    const users = await User.find().sort({ registeredAt: -1 }).lean().exec();
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
-});
+}));
 
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', withDB(async (req, res) => {
   try {
     const { name, email, phone, code } = req.body;
 
@@ -181,9 +185,9 @@ app.post('/api/register', async (req, res) => {
     console.error('Error registering user:', error);
     res.status(500).json({ message: 'Error registering user', error: error.message });
   }
-});
+}));
 
-app.post('/api/users/login', async (req, res) => {
+app.post('/api/users/login', withDB(async (req, res) => {
   try {
     const { code } = req.body;
     
@@ -202,9 +206,9 @@ app.post('/api/users/login', async (req, res) => {
     console.error('Error logging in:', error);
     res.status(500).json({ message: 'Error logging in', error: error.message });
   }
-});
+}));
 
-app.post('/api/users/scan', async (req, res) => {
+app.post('/api/users/scan', withDB(async (req, res) => {
   try {
     const { code } = req.body;
     
@@ -226,9 +230,9 @@ app.post('/api/users/scan', async (req, res) => {
     console.error('Error scanning ticket:', error);
     res.status(500).json({ message: 'Error scanning ticket', error: error.message });
   }
-});
+}));
 
-app.post('/api/codes/generate', adminAuth, async (req, res) => {
+app.post('/api/codes/generate', adminAuth, withDB(async (req, res) => {
   try {
     const count = parseInt(req.body.count) || 5;
     
@@ -246,7 +250,7 @@ app.post('/api/codes/generate', adminAuth, async (req, res) => {
     console.error('Error generating codes:', error);
     res.status(500).json({ message: 'Error generating codes', error: error.message });
   }
-});
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

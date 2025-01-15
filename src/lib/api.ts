@@ -24,7 +24,7 @@ const handleResponse = async (response: Response) => {
 
 export const registerUser = async (userData: any) => {
   try {
-    const response = await fetch(`${API_URL}/users/register`, {
+    const response = await fetch(`${API_URL}/register`, {
       method: 'POST',
       headers: defaultHeaders,
       body: JSON.stringify(userData),
@@ -38,7 +38,7 @@ export const registerUser = async (userData: any) => {
 
 export const loginUser = async (code: string) => {
   try {
-    const response = await fetch(`${API_URL}/users/login`, {
+    const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: defaultHeaders,
       body: JSON.stringify({ code }),
@@ -52,7 +52,7 @@ export const loginUser = async (code: string) => {
 
 export const scanTicket = async (code: string) => {
   try {
-    const response = await fetch(`${API_URL}/users/scan`, {
+    const response = await fetch(`${API_URL}/scan`, {
       method: 'POST',
       headers: defaultHeaders,
       body: JSON.stringify({ code }),
