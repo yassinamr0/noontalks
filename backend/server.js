@@ -4,7 +4,11 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'noon2024';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://your-mongodb-uri';
+const PORT = process.env.PORT || 3000;
 
+// CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
@@ -17,14 +21,8 @@ const corsOptions = {
       'http://127.0.0.1:4173',
       'http://127.0.0.1:8000'
     ];
-
-    // In development, allow all origins
-    if (!origin || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-      return;
-    }
-
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -33,26 +31,27 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  maxAge: 86400 // 24 hours
+  maxAge: 86400
 };
 
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Add root route
-app.get('/api', (req, res) => {
-  res.json({ message: 'NoonTalks Backend API is running' });
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
-
-// Admin token
-const ADMIN_TOKEN = 'noontalks2024'; // This should be in an environment variable in production
 
 // Admin authentication middleware
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: 'No token provided',
       error: 'Authentication required'
     });
@@ -61,8 +60,8 @@ const adminAuth = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   
   if (token !== ADMIN_TOKEN) {
-    return res.status(401).json({ 
-      message: 'Invalid admin token',
+    return res.status(401).json({
+      message: 'Invalid token',
       error: 'Authentication failed'
     });
   }
@@ -70,296 +69,220 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
-// Admin login endpoint
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  
-  if (password !== ADMIN_TOKEN) {
-    return res.status(401).json({ 
-      message: 'Invalid admin password',
-      error: 'Authentication failed'
-    });
-  }
-
-  res.json({ 
-    message: 'Admin login successful',
-    token: ADMIN_TOKEN
-  });
-});
-
-// MongoDB connection with optimized settings for serverless
-let cachedDb = null;
-
-const connectWithRetry = async () => {
-  if (cachedDb && mongoose.connection.readyState === 1) {
-    return cachedDb;
-  }
-
-  const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}/${process.env.MONGO_DB}`;
-  
+// MongoDB connection
+async function connectDB() {
   try {
-    console.log('Connecting to MongoDB...');
-    const options = {
+    await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 2000,
-      socketTimeoutMS: 10000,
-      connectTimeoutMS: 2000,
-      maxPoolSize: 1,
-      minPoolSize: 0,
-      maxIdleTimeMS: 5000,
-      keepAlive: false
-    };
-
-    if (!cachedDb) {
-      await mongoose.connect(mongoUrl, options);
-      cachedDb = mongoose.connection;
-      console.log('MongoDB connected successfully');
-    }
-
-    return cachedDb;
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    throw err;
-  }
-};
-
-// Wrap route handlers with better error handling
-const withDB = (handler) => async (req, res) => {
-  try {
-    await connectWithRetry();
-    return handler(req, res);
+    });
+    console.log('Connected to MongoDB');
   } catch (error) {
-    console.error('Database operation error:', error);
-    
-    if (error.name === 'MongooseServerSelectionError') {
-      return res.status(503).json({ 
-        message: 'Database temporarily unavailable',
-        error: 'Connection timeout'
-      });
-    }
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: Object.values(error.errors).map(err => err.message)
-      });
-    } else if (error.name === 'MongoServerError' && error.code === 11000) {
-      return res.status(409).json({ 
-        message: 'Duplicate key error',
-        field: Object.keys(error.keyPattern)[0]
-      });
-    } else {
-      return res.status(500).json({ 
-        message: 'Database operation failed',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-      });
-    }
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
   }
-};
+}
+
+connectDB();
 
 // User Schema
 const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  phone: String,
-  code: { 
-    type: String, 
-    unique: true,
-    uppercase: true
-  },
-  registeredAt: {
-    type: Date,
-    default: Date.now
-  },
-  entries: {
-    type: Number,
-    default: 0
-  },
-  lastEntry: Date
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  code: { type: String, required: true, unique: true },
+  entries: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
 });
 
-// Function to generate a random code
-function generateCode(length = 6) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
+const User = mongoose.model('User', userSchema);
 
-// Function to generate a unique code
-async function generateUniqueCode() {
+// Generate unique code
+async function generateUniqueCode(length = 6) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code;
   let isUnique = false;
-  
+
   while (!isUnique) {
-    code = generateCode(6);
+    code = '';
+    for (let i = 0; i < length; i++) {
+      code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
     const existingUser = await User.findOne({ code });
     if (!existingUser) {
       isUnique = true;
     }
   }
-  
+
   return code;
 }
 
-const User = mongoose.model('User', userSchema);
-
 // Routes
-app.get('/api/users', adminAuth, withDB(async (req, res) => {
+app.post('/admin/login', (req, res) => {
+  const { password } = req.body;
+  
+  if (password !== ADMIN_TOKEN) {
+    return res.status(401).json({
+      message: 'Invalid admin password',
+      error: 'Authentication failed'
+    });
+  }
+
+  res.json({
+    message: 'Admin login successful',
+    token: ADMIN_TOKEN
+  });
+});
+
+app.post('/admin/generate-codes', adminAuth, async (req, res) => {
   try {
-    const users = await User.find()
-      .sort({ registeredAt: -1 })
-      .select('-__v')
-      .lean()
-      .exec();
+    const count = parseInt(req.query.count) || 1;
+    const codes = [];
+    
+    for (let i = 0; i < count; i++) {
+      const code = await generateUniqueCode();
+      codes.push(code);
+    }
+
+    res.json({
+      message: 'Codes generated successfully',
+      codes
+    });
+  } catch (error) {
+    console.error('Generate codes error:', error);
+    res.status(500).json({
+      message: 'Error generating codes',
+      error: error.message
+    });
+  }
+});
+
+app.get('/users', adminAuth, async (req, res) => {
+  try {
+    const users = await User.find().sort('-createdAt');
     res.json(users);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ 
-      message: 'Error fetching users', 
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    console.error('Get users error:', error);
+    res.status(500).json({
+      message: 'Error fetching users',
+      error: error.message
     });
   }
-}));
+});
 
-// Generate a single code
-app.post('/api/codes/generate', adminAuth, withDB(async (req, res) => {
+app.post('/register', async (req, res) => {
   try {
-    const code = await generateUniqueCode();
-    res.json({ code });
-  } catch (error) {
-    console.error('Error generating code:', error);
-    res.status(500).json({ 
-      message: 'Error generating code', 
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-}));
-
-app.post('/api/register', withDB(async (req, res) => {
-  try {
-    const { name, email, phone, code } = req.body;
+    const { name, email, code } = req.body;
 
     if (!name || !email || !code) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({
+        message: 'Missing required fields',
+        error: 'Validation failed'
+      });
     }
 
-    const existingUser = await User.findOne({ code: code.toUpperCase() });
-    if (existingUser) {
-      return res.status(400).json({ 
+    const existingUser = await User.findOne({ code });
+    if (!existingUser) {
+      return res.status(404).json({
+        message: 'Invalid registration code',
+        error: 'Code not found'
+      });
+    }
+
+    if (existingUser.name || existingUser.email) {
+      return res.status(400).json({
         message: 'Code already used',
-        code: code.toUpperCase()
+        error: 'Registration failed'
       });
     }
 
-    const user = new User({
-      name,
-      email,
-      phone,
-      code: code.toUpperCase(),
-      registeredAt: new Date(),
-      entries: 0
-    });
+    existingUser.name = name;
+    existingUser.email = email;
+    await existingUser.save();
 
-    await user.save();
-    res.status(201).json({ 
+    res.json({
       message: 'Registration successful',
-      user: user.toObject({ versionKey: false })
+      user: existingUser
     });
   } catch (error) {
-    console.error('Error registering user:', error);
-    if (error.name === 'ValidationError') {
-      res.status(400).json({ 
-        message: 'Validation error', 
-        errors: Object.values(error.errors).map(err => err.message)
-      });
-    } else {
-      res.status(500).json({ 
-        message: 'Error registering user',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-      });
-    }
+    console.error('Registration error:', error);
+    res.status(500).json({
+      message: 'Error registering user',
+      error: error.message
+    });
   }
-}));
+});
 
-app.post('/api/users/login', withDB(async (req, res) => {
+app.post('/login', async (req, res) => {
   try {
     const { code } = req.body;
     
     if (!code) {
-      return res.status(400).json({ message: 'Missing code' });
-    }
-
-    const user = await User.findOne({ code: code.toUpperCase() });
-    
-    if (!user) {
-      return res.status(404).json({ 
-        message: 'Invalid code',
-        code: code.toUpperCase()
+      return res.status(400).json({
+        message: 'Code is required',
+        error: 'Validation failed'
       });
     }
 
-    res.json({ 
-      message: 'Login successful',
-      user: user.toObject({ versionKey: false })
-    });
+    const user = await User.findOne({ code });
+    if (!user || !user.name) {
+      return res.status(404).json({
+        message: 'Invalid code or user not registered',
+        error: 'Authentication failed'
+      });
+    }
+
+    res.json(user);
   } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).json({ 
+    console.error('Login error:', error);
+    res.status(500).json({
       message: 'Error logging in',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: error.message
     });
   }
-}));
+});
 
-app.post('/api/users/scan', withDB(async (req, res) => {
+app.post('/admin/scan-ticket', adminAuth, async (req, res) => {
   try {
     const { code } = req.body;
     
     if (!code) {
-      return res.status(400).json({ message: 'Missing code' });
+      return res.status(400).json({
+        message: 'Code is required',
+        error: 'Validation failed'
+      });
     }
 
-    const user = await User.findOne({ code: code.toUpperCase() });
-    
-    if (!user) {
-      return res.status(404).json({ 
-        message: 'Invalid ticket code',
-        code: code.toUpperCase()
+    const user = await User.findOne({ code });
+    if (!user || !user.name) {
+      return res.status(404).json({
+        message: 'Invalid ticket or user not registered',
+        isValid: false
       });
     }
 
     user.entries += 1;
-    user.lastEntry = new Date();
     await user.save();
 
-    res.json({ 
+    res.json({
       message: 'Ticket scanned successfully',
-      user: user.toObject({ versionKey: false })
+      isValid: true,
+      user
     });
   } catch (error) {
-    console.error('Error scanning ticket:', error);
-    res.status(500).json({ 
+    console.error('Scan ticket error:', error);
+    res.status(500).json({
       message: 'Error scanning ticket',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: error.message,
+      isValid: false
     });
   }
-}));
+});
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-const port = process.env.PORT || 3000;
-
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
-
-module.exports = app;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

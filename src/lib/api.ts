@@ -1,91 +1,112 @@
 import { API_URL } from '@/config';
 
-interface ApiResponse<T> {
-  message?: string;
-  error?: string;
-  [key: string]: any;
-}
-
-interface User {
-  name: string;
-  email: string;
-  phone?: string;
-  code: string;
-  entries: number;
-  registeredAt: string;
-  lastEntry?: string;
-}
-
-interface AdminLoginResponse {
+interface ApiResponse {
   message: string;
+  error?: string;
+}
+
+interface AdminLoginResponse extends ApiResponse {
   token: string;
 }
 
+interface GenerateCodeResponse extends ApiResponse {
+  codes: string[];
+}
+
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  code: string;
+  entries: number;
+  createdAt: string;
+}
+
+interface ScanTicketResponse extends ApiResponse {
+  isValid: boolean;
+  user?: User;
+}
+
 const handleResponse = async <T>(response: Response): Promise<T> => {
-  const data = await response.json();
-  
   if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+    throw new Error(errorData.message || 'Network error');
   }
-  
-  return data;
+  return response.json();
 };
 
-const fetchOptions = (method: string = 'GET', body?: any, token?: string): RequestInit => ({
+const fetchOptions = (method: string, body?: any) => ({
   method,
   headers: {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
+    ...(sessionStorage.getItem('adminToken')
+      ? { Authorization: `Bearer ${sessionStorage.getItem('adminToken')}` }
+      : {}),
   },
   body: body ? JSON.stringify(body) : undefined,
-  credentials: 'include',
-  mode: 'cors'
+  credentials: 'include' as const,
 });
 
 export const adminLogin = async (password: string): Promise<AdminLoginResponse> => {
-  const response = await fetch(`${API_URL}/admin/login`, fetchOptions('POST', { password }));
-  return handleResponse<AdminLoginResponse>(response);
-};
-
-export const registerUser = async (userData: { name: string; email: string; phone?: string; code: string }): Promise<User> => {
-  const response = await fetch(`${API_URL}/register`, fetchOptions('POST', userData));
-  const data = await handleResponse<ApiResponse<User>>(response);
-  return data.user;
-};
-
-export const loginUser = async (code: string): Promise<User> => {
-  const response = await fetch(`${API_URL}/users/login`, fetchOptions('POST', { code }));
-  const data = await handleResponse<ApiResponse<User>>(response);
-  return data.user;
-};
-
-export const scanTicket = async (code: string): Promise<User> => {
-  const token = sessionStorage.getItem('adminToken');
-  if (!token) {
-    throw new Error('Admin token not found. Please login again.');
+  try {
+    const response = await fetch(`${API_URL}/admin/login`, fetchOptions('POST', { password }));
+    const data = await handleResponse<AdminLoginResponse>(response);
+    sessionStorage.setItem('adminToken', data.token);
+    sessionStorage.setItem('isAdmin', 'true');
+    return data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
   }
+};
 
-  const response = await fetch(`${API_URL}/users/scan`, fetchOptions('POST', { code }, token));
-  const data = await handleResponse<ApiResponse<User>>(response);
-  return data.user;
+export const generateCodes = async (count: number): Promise<GenerateCodeResponse> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/admin/generate-codes?count=${count}`,
+      fetchOptions('POST')
+    );
+    return handleResponse<GenerateCodeResponse>(response);
+  } catch (error) {
+    console.error('Generate codes error:', error);
+    throw error;
+  }
 };
 
 export const getUsers = async (): Promise<User[]> => {
-  const token = sessionStorage.getItem('adminToken');
-  if (!token) {
-    throw new Error('Admin token not found. Please login again.');
+  try {
+    const response = await fetch(`${API_URL}/users`, fetchOptions('GET'));
+    return handleResponse<User[]>(response);
+  } catch (error) {
+    console.error('Get users error:', error);
+    throw error;
   }
-
-  const response = await fetch(`${API_URL}/users`, fetchOptions('GET', undefined, token));
-  return handleResponse<User[]>(response);
 };
 
-export const generateCodes = async (count: number = 1): Promise<{ code: string }> => {
-  const token = sessionStorage.getItem('adminToken');
-  if (!token) {
-    throw new Error('Admin token not found. Please login again.');
+export const scanTicket = async (code: string): Promise<ScanTicketResponse> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/admin/scan-ticket`,
+      fetchOptions('POST', { code })
+    );
+    return handleResponse<ScanTicketResponse>(response);
+  } catch (error) {
+    console.error('Scan ticket error:', error);
+    throw error;
   }
+};
 
-  const response = await fetch(`${API_URL}/codes/generate`, fetchOptions('POST', undefined, token));
-  return handleResponse<{ code: string }>(response);
+export const loginUser = async (code: string): Promise<User> => {
+  try {
+    const response = await fetch(
+      `${API_URL}/login`,
+      fetchOptions('POST', { code })
+    );
+    const data = await handleResponse<User>(response);
+    sessionStorage.setItem('user', JSON.stringify(data));
+    return data;
+  } catch (error) {
+    console.error('User login error:', error);
+    throw error;
+  }
 };
