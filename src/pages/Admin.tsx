@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QRScanner from "@/components/QRScanner";
-import { addUser, getUsers } from '@/lib/api';
+import { addUser, getUsers, sendWelcomeEmail } from '@/lib/api';
 import { toast } from 'sonner';
 import Navbar from "@/components/Navbar";
 
@@ -68,23 +68,11 @@ export default function Admin() {
       
       // Send welcome email
       try {
-        const emailResponse = await fetch(`${API_URL}/admin/send-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
-          },
-          body: JSON.stringify({
-            to: user.email,
-            name: user.name,
-          })
+        await sendWelcomeEmail({
+          to_email: user.email,
+          to_name: user.name,
         });
-        
-        if (emailResponse.ok) {
-          toast.success("User added and welcome email sent!");
-        } else {
-          toast.error("User added but failed to send welcome email");
-        }
+        toast.success("User added and welcome email sent!");
       } catch (emailError) {
         console.error("Error sending welcome email:", emailError);
         toast.error("User added but failed to send welcome email");

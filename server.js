@@ -34,7 +34,7 @@ const User = mongoose.model('User', userSchema);
 // Admin token middleware
 const adminAuth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (token !== process.env.ADMIN_TOKEN) {
+  if (token !== 'noontalks_admin_token') {
     return res.status(401).json({ message: 'Unauthorized' });
   }
   next();
@@ -43,8 +43,8 @@ const adminAuth = (req, res, next) => {
 // API Routes
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
-  if (password === process.env.ADMIN_PASSWORD) {
-    res.json({ token: process.env.ADMIN_TOKEN });
+  if (password === 'noon2024') {
+    res.json({ token: 'noontalks_admin_token' });
   } else {
     res.status(401).json({ message: 'Invalid password' });
   }
@@ -65,37 +65,6 @@ app.post('/api/admin/add-user', adminAuth, async (req, res) => {
 
     const qrCode = Math.random().toString(36).substring(7);
     const user = await User.create({ name, email, phone, qrCode });
-
-    // Send welcome email
-    try {
-      const nodemailer = require('nodemailer');
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Welcome to Noon Talks!',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #542c6a;">Welcome to Noon Talks!</h1>
-            <p>Hello ${name},</p>
-            <p>Thank you for registering for our event! You can now log in to view your ticket using your email address.</p>
-            <p>Best regards,<br>Noon Talks Team</p>
-          </div>
-        `
-      };
-
-      await transporter.sendMail(mailOptions);
-    } catch (emailError) {
-      console.error('Error sending welcome email:', emailError);
-    }
-
     res.json(user);
   } catch (error) {
     console.error('Error adding user:', error);
