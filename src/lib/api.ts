@@ -7,6 +7,7 @@ const ADMIN_TOKEN = 'noontalks2024';
 const defaultHeaders = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
+  'X-Requested-With': 'XMLHttpRequest'
 };
 
 const adminHeaders = {
@@ -14,95 +15,97 @@ const adminHeaders = {
   'Authorization': `Bearer ${ADMIN_TOKEN}`,
 };
 
-export const registerUser = async (userData: any) => {
-  const response = await fetch(`${API_URL}/users/register`, {
-    method: 'POST',
-    headers: defaultHeaders,
-    body: JSON.stringify(userData),
-  });
-  
-  const data = await response.json();
+const handleResponse = async (response: Response) => {
   if (!response.ok) {
-    throw new Error(data.message || 'Registration failed');
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
   }
-  
-  return data;
+  return response.json();
+};
+
+export const registerUser = async (userData: any) => {
+  try {
+    const response = await fetch(`${API_URL}/users/register`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify(userData),
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error in registerUser:', error);
+    throw error;
+  }
 };
 
 export const loginUser = async (code: string) => {
-  const response = await fetch(`${API_URL}/users/login`, {
-    method: 'POST',
-    headers: defaultHeaders,
-    body: JSON.stringify({ code }),
-  });
-  
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Login failed');
+  try {
+    const response = await fetch(`${API_URL}/users/login`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({ code }),
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error in loginUser:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export const scanTicket = async (code: string) => {
-  const response = await fetch(`${API_URL}/users/scan`, {
-    method: 'POST',
-    headers: defaultHeaders,
-    body: JSON.stringify({ code }),
-  });
-  
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Scan failed');
+  try {
+    const response = await fetch(`${API_URL}/users/scan`, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({ code }),
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error in scanTicket:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export const getUsers = async () => {
-  const response = await fetch(`${API_URL}/users`, {
-    method: 'GET',
-    headers: adminHeaders,
-  });
-  
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to fetch users');
+  try {
+    const response = await fetch(`${API_URL}/users`, {
+      method: 'GET',
+      headers: adminHeaders,
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error in getUsers:', error);
+    throw error;
   }
-  
-  return data;
 };
 
 export const addValidCodes = async (codes: string[]) => {
   const adminToken = sessionStorage.getItem('adminToken') || 'noontalks2024';
-  const response = await fetch(`${API_URL}/codes`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${adminToken}`,
-    },
-    body: JSON.stringify({ codes }),
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to add codes');
+  try {
+    const response = await fetch(`${API_URL}/codes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ codes }),
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error in addValidCodes:', error);
+    throw error;
   }
-  
-  return response.json();
 };
 
 export const generateCodes = async (count: number) => {
-  const response = await fetch(`${API_URL}/codes/generate`, {
-    method: 'POST',
-    headers: adminHeaders,
-    body: JSON.stringify({ count }),
-  });
-  
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to generate codes');
+  try {
+    const response = await fetch(`${API_URL}/codes/generate`, {
+      method: 'POST',
+      headers: adminHeaders,
+      body: JSON.stringify({ count }),
+    });
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error in generateCodes:', error);
+    throw error;
   }
-  
-  return data;
 };
