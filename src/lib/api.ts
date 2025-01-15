@@ -1,5 +1,5 @@
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://noontalks.vercel.app/api'
+  ? 'https://api.noon-talks.online/api'
   : 'http://localhost:5000/api';
 
 const ADMIN_TOKEN = 'noontalks2024';
@@ -18,7 +18,6 @@ export const registerUser = async (userData: any) => {
   const response = await fetch(`${API_URL}/users/register`, {
     method: 'POST',
     headers: defaultHeaders,
-    credentials: 'include',
     body: JSON.stringify(userData),
   });
   
@@ -34,7 +33,6 @@ export const loginUser = async (code: string) => {
   const response = await fetch(`${API_URL}/users/login`, {
     method: 'POST',
     headers: defaultHeaders,
-    credentials: 'include',
     body: JSON.stringify({ code }),
   });
   
@@ -50,7 +48,6 @@ export const scanTicket = async (code: string) => {
   const response = await fetch(`${API_URL}/users/scan`, {
     method: 'POST',
     headers: defaultHeaders,
-    credentials: 'include',
     body: JSON.stringify({ code }),
   });
   
@@ -66,7 +63,6 @@ export const getUsers = async () => {
   const response = await fetch(`${API_URL}/users`, {
     method: 'GET',
     headers: adminHeaders,
-    credentials: 'include',
   });
   
   const data = await response.json();
@@ -100,7 +96,6 @@ export const generateCodes = async (count: number) => {
   const response = await fetch(`${API_URL}/codes/generate`, {
     method: 'POST',
     headers: adminHeaders,
-    credentials: 'include',
     body: JSON.stringify({ count }),
   });
   
