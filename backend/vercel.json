@@ -21,19 +21,11 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "X-Requested-With, Content-Type, Authorization"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
         }
       ]
     }
   ],
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/server.js"
-    },
     {
       "source": "/(.*)",
       "destination": "/server.js"

@@ -6,12 +6,7 @@ require('dotenv').config();
 const app = express();
 
 // CORS configuration
-app.use(cors({
-  origin: ['https://www.noon-talks.online', 'http://localhost:5173', 'null'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true
-}));
+app.use(cors());
 
 app.use(express.json());
 

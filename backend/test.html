@@ -13,16 +13,36 @@
         const API_URL = 'https://noontalks-backend.vercel.app';
         const ADMIN_TOKEN = 'noontalks2024';
 
+        async function makeRequest(method, url, body = null) {
+            const options = {
+                method: method,
+                mode: 'cors',
+                headers: {
+                    'Authorization': `Bearer ${ADMIN_TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Request error:', error);
+                throw error;
+            }
+        }
+
         async function testUsers() {
             try {
-                const response = await fetch(`${API_URL}/users`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${ADMIN_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const data = await response.json();
+                document.getElementById('result').textContent = 'Loading...';
+                const data = await makeRequest('GET', `${API_URL}/users`);
                 document.getElementById('result').textContent = JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('result').textContent = 'Error: ' + error.message;
@@ -31,15 +51,8 @@
 
         async function testGenerateCodes() {
             try {
-                const response = await fetch(`${API_URL}/codes/generate`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${ADMIN_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ count: 5 })
-                });
-                const data = await response.json();
+                document.getElementById('result').textContent = 'Loading...';
+                const data = await makeRequest('POST', `${API_URL}/codes/generate`, { count: 5 });
                 document.getElementById('result').textContent = JSON.stringify(data, null, 2);
             } catch (error) {
                 document.getElementById('result').textContent = 'Error: ' + error.message;
