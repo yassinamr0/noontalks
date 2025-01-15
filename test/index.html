@@ -61,19 +61,23 @@
 
             try {
                 console.log('Making request to:', url);
-                console.log('Request options:', options);
+                console.log('Request options:', JSON.stringify(options, null, 2));
                 
                 const response = await fetch(url, options);
                 console.log('Response status:', response.status);
-                console.log('Response headers:', [...response.headers.entries()]);
+                console.log('Response headers:', Object.fromEntries([...response.headers.entries()]));
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    console.log('Response text:', text);
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
                 }
 
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    throw new TypeError("Oops, we haven't got JSON!");
+                    const text = await response.text();
+                    console.log('Non-JSON response:', text);
+                    throw new TypeError(`Expected JSON but got ${contentType}. Body: ${text}`);
                 }
 
                 const data = await response.json();
@@ -87,7 +91,9 @@
 Origin: ${window.location.origin}
 URL: ${url}
 Method: ${method}
-Error: ${error.toString()}`;
+Headers: ${JSON.stringify(options.headers, null, 2)}
+Error: ${error.toString()}
+Stack: ${error.stack}`;
             }
         }
 
