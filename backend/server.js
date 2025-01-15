@@ -7,9 +7,20 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://ticketwave-qr.vercel.app'],
-  credentials: true
+  origin: [
+    'http://localhost:5173',
+    'https://ticketwave-qr.vercel.app',
+    'https://www.noon-talks.online',
+    'https://noon-talks.online'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Enable pre-flight requests for all routes
+app.options('*', cors());
+
 app.use(express.json());
 
 // Admin token

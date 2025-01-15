@@ -4,12 +4,21 @@ const API_URL = process.env.NODE_ENV === 'production'
 
 const ADMIN_TOKEN = 'noontalks2024';
 
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+};
+
+const adminHeaders = {
+  ...defaultHeaders,
+  'Authorization': `Bearer ${ADMIN_TOKEN}`,
+};
+
 export const registerUser = async (userData: any) => {
   const response = await fetch(`${API_URL}/users/register`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: defaultHeaders,
+    credentials: 'include',
     body: JSON.stringify(userData),
   });
   
@@ -24,9 +33,8 @@ export const registerUser = async (userData: any) => {
 export const loginUser = async (code: string) => {
   const response = await fetch(`${API_URL}/users/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: defaultHeaders,
+    credentials: 'include',
     body: JSON.stringify({ code }),
   });
   
@@ -41,9 +49,8 @@ export const loginUser = async (code: string) => {
 export const scanTicket = async (code: string) => {
   const response = await fetch(`${API_URL}/users/scan`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: defaultHeaders,
+    credentials: 'include',
     body: JSON.stringify({ code }),
   });
   
@@ -57,9 +64,9 @@ export const scanTicket = async (code: string) => {
 
 export const getUsers = async () => {
   const response = await fetch(`${API_URL}/users`, {
-    headers: {
-      'Authorization': `Bearer ${ADMIN_TOKEN}`,
-    },
+    method: 'GET',
+    headers: adminHeaders,
+    credentials: 'include',
   });
   
   const data = await response.json();
@@ -92,10 +99,8 @@ export const addValidCodes = async (codes: string[]) => {
 export const generateCodes = async (count: number) => {
   const response = await fetch(`${API_URL}/codes/generate`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${ADMIN_TOKEN}`,
-    },
+    headers: adminHeaders,
+    credentials: 'include',
     body: JSON.stringify({ count }),
   });
   
