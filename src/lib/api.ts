@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Backend API URL
+const API_URL = 'https://noontalks-backend.vercel.app';
 
 const ADMIN_TOKEN = 'noontalks2024';
 
