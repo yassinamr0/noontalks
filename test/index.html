@@ -20,6 +20,10 @@
             border-radius: 5px;
             white-space: pre-wrap;
         }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -31,6 +35,7 @@
     </div>
     <h3>Response:</h3>
     <pre id="result">Click a button to test an endpoint...</pre>
+    <div id="debug" class="error"></div>
 
     <script>
         const API_URL = 'https://noontalks-backend.vercel.app';
@@ -38,13 +43,15 @@
 
         async function makeRequest(method, url, body = null) {
             document.getElementById('result').textContent = 'Loading...';
+            document.getElementById('debug').textContent = '';
             
             const options = {
                 method: method,
                 mode: 'cors',
                 headers: {
                     'Authorization': `Bearer ${ADMIN_TOKEN}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 }
             };
 
@@ -54,9 +61,21 @@
 
             try {
                 console.log('Making request to:', url);
+                console.log('Request options:', options);
+                
                 const response = await fetch(url, options);
                 console.log('Response status:', response.status);
-                
+                console.log('Response headers:', [...response.headers.entries()]);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new TypeError("Oops, we haven't got JSON!");
+                }
+
                 const data = await response.json();
                 console.log('Response data:', data);
                 
@@ -64,6 +83,11 @@
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('result').textContent = 'Error: ' + error.message;
+                document.getElementById('debug').textContent = `Debug info:
+Origin: ${window.location.origin}
+URL: ${url}
+Method: ${method}
+Error: ${error.toString()}`;
             }
         }
 
