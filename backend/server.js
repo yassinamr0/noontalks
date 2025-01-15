@@ -12,6 +12,21 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Admin authentication middleware
+const adminAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: 'No authorization header' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (token !== process.env.ADMIN_TOKEN) {
+    return res.status(401).json({ message: 'Invalid admin token' });
+  }
+
+  next();
+};
+
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -43,12 +58,12 @@ const validCodeSchema = new mongoose.Schema({
 const ValidCode = mongoose.model('ValidCode', validCodeSchema);
 
 // Routes
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', adminAuth, async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().sort({ registeredAt: -1 });
     res.json(users);
   } catch (error) {
-    res.status(400).json('Error: ' + error);
+    res.status(400).json({ message: error.message });
   }
 });
 
@@ -118,14 +133,29 @@ app.post('/api/users/scan', async (req, res) => {
   }
 });
 
-app.post('/api/codes', async (req, res) => {
+app.post('/api/codes', adminAuth, async (req, res) => {
   try {
     const { codes } = req.body;
-    const validCodes = codes.map(code => ({ code: code.toUpperCase() }));
+    
+    if (!Array.isArray(codes) || codes.length === 0) {
+      return res.status(400).json({ message: 'Please enter valid codes' });
+    }
+
+    const validCodes = codes.map(code => {
+      if (typeof code !== 'string' || code.trim().length === 0) {
+        throw new Error('Invalid code format');
+      }
+      return { code: code.trim().toUpperCase() };
+    });
+
     await ValidCode.insertMany(validCodes);
     res.json({ message: 'Codes added successfully' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    if (error.code === 11000) {
+      res.status(400).json({ message: 'Some codes already exist' });
+    } else {
+      res.status(400).json({ message: error.message });
+    }
   }
 });
 

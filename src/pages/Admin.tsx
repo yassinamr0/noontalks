@@ -54,7 +54,11 @@ export default function Admin() {
 
   const handleAddCodes = async () => {
     try {
-      const codeArray = codes.split(",").map((code) => code.trim()).filter(Boolean);
+      const codeArray = codes
+        .split(/[\n,]/) // Split by newline or comma
+        .map(code => code.trim())
+        .filter(code => code.length > 0);
+
       if (codeArray.length === 0) {
         toast.error("Please enter valid codes");
         return;
@@ -63,9 +67,14 @@ export default function Admin() {
       await addValidCodes(codeArray);
       toast.success("Codes added successfully");
       setCodes("");
+      await fetchUsers(); // Refresh the user list
     } catch (error) {
       console.error("Error adding codes:", error);
-      toast.error("Failed to add codes");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to add codes");
+      }
     }
   };
 
