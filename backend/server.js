@@ -11,6 +11,7 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     'https://www.noon-talks.online', 
     'https://noontalk.vercel.app',
+    'https://noontalks-pynjnlwmj-yassins-projects-ff5455b4.vercel.app', // Your Vercel preview
     'http://localhost:5173',  // Vite default
     'http://localhost:4173',  // Vite preview
     'http://localhost:8000',  // Test page
@@ -24,6 +25,11 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
   } else if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // For Vercel preview deployments
+    if (origin && origin.endsWith('.vercel.app')) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
