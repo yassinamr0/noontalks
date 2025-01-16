@@ -193,8 +193,6 @@ export default function Admin() {
                     <th className="text-left p-2">Email</th>
                     <th className="text-left p-2">Phone</th>
                     <th className="text-left p-2">Entries</th>
-                    <th className="text-left p-2">Registered</th>
-                    <th className="text-left p-2">Last Entry</th>
                     <th className="text-left p-2">Actions</th>
                   </tr>
                 </thead>
@@ -205,8 +203,6 @@ export default function Admin() {
                       <td className="p-2">{user.email}</td>
                       <td className="p-2">{user.phone || '-'}</td>
                       <td className="p-2">{user.entries}</td>
-                      <td className="p-2">{formatDate(user.createdAt)}</td>
-                      <td className="p-2">{user.lastEntry ? formatDate(user.lastEntry) : '-'}</td>
                       <td className="p-2">
                         <Button
                           onClick={() => openTicket(user.email)}
