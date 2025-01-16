@@ -22,8 +22,8 @@ export default function AdminLogin() {
       console.log('Session storage set, showing toast...');
       toast.success("Login successful!");
       
-      console.log('Redirecting to admin panel');
-      window.location.href = "https://www.noon-talks.online/admin";
+      // Force page reload and redirect
+      window.location.replace("https://www.noon-talks.online/admin");
       
     } catch (error) {
       console.error('Login error:', error);

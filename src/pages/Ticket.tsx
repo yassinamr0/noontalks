@@ -27,7 +27,7 @@ export default function Ticket() {
       try {
         if (!email) {
           toast.error("No email provided");
-          navigate("/login");
+          window.location.replace("https://www.noon-talks.online");
           return;
         }
 
@@ -40,7 +40,7 @@ export default function Ticket() {
         } else {
           toast.error("Failed to fetch ticket");
         }
-        navigate("/login");
+        window.location.replace("https://www.noon-talks.online");
       }
     };
 
@@ -49,7 +49,7 @@ export default function Ticket() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("currentUser");
-    navigate("/login");
+    window.location.replace("https://www.noon-talks.online");
   };
 
   if (!user) {
@@ -68,23 +68,26 @@ export default function Ticket() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <div className="relative">
+          <div className="relative bg-white rounded-lg shadow-xl overflow-hidden">
             {/* Ticket Design Background */}
             <img
               src="/ticketdesign.png"
               alt="Ticket Design"
               className="w-full h-auto"
+              style={{ maxHeight: '600px', objectFit: 'contain' }}
             />
             
-            {/* QR Code Overlay - positioned absolutely */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <QRCode
-                value={user.email}
-                size={200}
-                level="H"
-                includeMargin={false}
-                className="mx-auto"
-              />
+            {/* QR Code Overlay */}
+            <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+              <div className="bg-white p-4 rounded-lg">
+                <QRCode
+                  value={user.email}
+                  size={180}
+                  level="H"
+                  includeMargin={false}
+                  className="mx-auto"
+                />
+              </div>
             </div>
           </div>
 
@@ -93,7 +96,7 @@ export default function Ticket() {
               onClick={handleLogout}
               className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
             >
-              Logout
+              Back to Home
             </Button>
           </div>
         </div>
