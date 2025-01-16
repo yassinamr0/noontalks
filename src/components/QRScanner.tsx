@@ -26,10 +26,22 @@ export default function QRScanner() {
     };
   }, []);
 
+  const findBackCamera = (cameras: Camera[]) => {
+    // Try to find a back camera
+    const backCamera = cameras.find(camera => 
+      camera.label.toLowerCase().includes('back') || 
+      camera.label.toLowerCase().includes('rear') ||
+      camera.label.toLowerCase().includes('environment')
+    );
+    return backCamera || cameras[0]; // Fallback to first camera if no back camera found
+  };
+
   const requestCameraPermission = async () => {
     try {
       // First request camera permission
-      await navigator.mediaDevices.getUserMedia({ video: true });
+      await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } // Prefer back camera
+      });
       
       // Then get available cameras
       const devices = await Html5Qrcode.getCameras();
@@ -40,9 +52,12 @@ export default function QRScanner() {
       
       setCameras(availableCameras);
       
-      // Select the first camera by default
+      // Select back camera by default
       if (availableCameras.length > 0) {
-        setSelectedCamera(availableCameras[0].id);
+        const defaultCamera = findBackCamera(availableCameras);
+        setSelectedCamera(defaultCamera.id);
+        // Start scanning automatically with the back camera
+        startScanningWithCamera(defaultCamera.id);
       }
     } catch (err) {
       console.error("Error requesting camera permission:", err);
@@ -50,15 +65,20 @@ export default function QRScanner() {
     }
   };
 
-  const startScanning = async () => {
-    if (!html5QrCode || !selectedCamera) {
-      toast.error("Please select a camera first");
+  const startScanningWithCamera = async (cameraId: string) => {
+    if (!html5QrCode) {
+      toast.error("Scanner not initialized");
       return;
     }
 
     try {
+      // If already scanning, stop first
+      if (html5QrCode.isScanning) {
+        await html5QrCode.stop();
+      }
+
       await html5QrCode.start(
-        selectedCamera,
+        cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
@@ -86,6 +106,14 @@ export default function QRScanner() {
     } catch (err) {
       console.error("Error starting camera:", err);
       toast.error("Could not start camera. Please try again.");
+      setIsScanning(false);
+    }
+  };
+
+  const handleCameraChange = async (newCameraId: string) => {
+    setSelectedCamera(newCameraId);
+    if (isScanning) {
+      await startScanningWithCamera(newCameraId);
     }
   };
 
@@ -117,9 +145,8 @@ export default function QRScanner() {
           <>
             <select
               value={selectedCamera}
-              onChange={(e) => setSelectedCamera(e.target.value)}
+              onChange={(e) => handleCameraChange(e.target.value)}
               className="w-full max-w-[300px] p-2 rounded border border-gray-300"
-              disabled={isScanning}
             >
               {cameras.map((camera) => (
                 <option key={camera.id} value={camera.id}>
@@ -130,7 +157,7 @@ export default function QRScanner() {
 
             {!isScanning ? (
               <Button
-                onClick={startScanning}
+                onClick={() => startScanningWithCamera(selectedCamera)}
                 className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
               >
                 Start Scanning
