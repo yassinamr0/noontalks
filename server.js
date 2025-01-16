@@ -178,10 +178,10 @@ app.post('/api/user/login', async (req, res) => {
   }
 });
 
-// Serve static files from the dist directory
+// Serve static files
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Handle React routing - must be after API routes
+// Handle React routing
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));

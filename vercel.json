@@ -29,12 +29,15 @@
       "dest": "/server.js"
     },
     {
-      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|gif))",
-      "dest": "/dist/$1"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/admin.*",
+      "dest": "/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/index.html"
+      "dest": "/index.html"
     }
   ]
 }
