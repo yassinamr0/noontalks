@@ -67,60 +67,34 @@ export default function Ticket() {
     <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <img
-                  src="/logo-removebg-preview.png"
-                  alt="Noon Talks Logo"
-                  className="mx-auto h-16 w-auto mb-4"
-                />
-                <h2 className="text-2xl font-bold text-[#542c6a]">Your Ticket</h2>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <div className="p-3 bg-white rounded-lg shadow-md">
-                    <QRCode
-                      value={user.email}
-                      size={200}
-                      level="H"
-                      includeMargin={true}
-                      className="mx-auto"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-center mt-6">
-                  <p className="text-lg font-semibold text-[#542c6a]">
-                    {user.name || 'Guest'}
-                  </p>
-                  <p className="text-gray-600">{user.email}</p>
-                  {user.phone && (
-                    <p className="text-gray-600">{user.phone}</p>
-                  )}
-                  <p className="text-sm text-gray-500 mt-2">
-                    Entries: {user.entries}
-                  </p>
-                  {user.lastEntry && (
-                    <p className="text-sm text-gray-500">
-                      Last Entry: {new Date(user.lastEntry).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    onClick={handleLogout}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Logout
-                  </Button>
-                </div>
-              </div>
+        <div className="max-w-2xl mx-auto">
+          <div className="relative">
+            {/* Ticket Design Background */}
+            <img
+              src="/ticketdesign.png"
+              alt="Ticket Design"
+              className="w-full h-auto"
+            />
+            
+            {/* QR Code Overlay - positioned absolutely */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <QRCode
+                value={user.email}
+                size={200}
+                level="H"
+                includeMargin={false}
+                className="mx-auto"
+              />
             </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Button
+              onClick={handleLogout}
+              className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
+            >
+              Logout
+            </Button>
           </div>
         </div>
       </div>
