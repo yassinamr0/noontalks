@@ -64,10 +64,14 @@ export default function QRScanner() {
           setIsProcessing(true);
 
           try {
-            const user = await scanTicket(decodedText);
-            toast.success(`Valid ticket for ${user.name}! Entries: ${user.entries}`);
-            // Optionally stop scanning after successful scan
-            await stopScanning();
+            const response = await scanTicket(decodedText);
+            if (response.user) {
+              toast.success(`Valid ticket for ${response.user.name}! Entries: ${response.user.entries}`);
+              // Optionally stop scanning after successful scan
+              await stopScanning();
+            } else {
+              toast.error("Invalid ticket");
+            }
           } catch (error) {
             if (error instanceof Error) {
               toast.error(error.message);
