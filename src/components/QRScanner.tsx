@@ -10,9 +10,18 @@ export default function QRScanner() {
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Initialize QR code scanner
-    const qrCode = new Html5Qrcode("qr-reader");
-    setHtml5QrCode(qrCode);
+    let qrCode: Html5Qrcode | null = null;
+    
+    // Wait for the element to be available
+    const initializeScanner = () => {
+      try {
+        qrCode = new Html5Qrcode("reader");
+        setHtml5QrCode(qrCode);
+        checkCamera();
+      } catch (err) {
+        console.error("Error initializing scanner:", err);
+      }
+    };
 
     // Check for camera access
     const checkCamera = async () => {
@@ -25,10 +34,11 @@ export default function QRScanner() {
       }
     };
 
-    checkCamera();
+    // Small delay to ensure DOM is ready
+    setTimeout(initializeScanner, 100);
 
     return () => {
-      if (qrCode.isScanning) {
+      if (qrCode?.isScanning) {
         qrCode.stop().catch(console.error);
       }
     };
@@ -117,7 +127,7 @@ export default function QRScanner() {
 
   return (
     <div className="space-y-4">
-      <div id="qr-reader" className="w-full max-w-[500px] mx-auto"></div>
+      <div id="reader" className="w-full max-w-[500px] mx-auto"></div>
       
       <div className="flex justify-center space-x-2">
         {!hasCamera ? (
