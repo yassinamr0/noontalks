@@ -19,9 +19,13 @@ interface User {
   lastEntry?: string;
 }
 
-interface ScanTicketResponse extends ApiResponse {
+interface ScanTicketResponse extends User {
+  // Inherits all User properties
+}
+
+interface ScanTicketFullResponse extends ApiResponse {
   isValid: boolean;
-  user?: User;
+  user?: ScanTicketResponse;
 }
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
@@ -99,13 +103,13 @@ export const loginUser = async (email: string): Promise<User> => {
   }
 };
 
-export const scanTicket = async (email: string): Promise<ScanTicketResponse> => {
+export const scanTicket = async (email: string): Promise<ScanTicketFullResponse> => {
   try {
     const response = await fetch(
       `${API_URL}/admin/scan`,
       fetchOptions('POST', { email })
     );
-    return handleResponse<ScanTicketResponse>(response);
+    return handleResponse<ScanTicketFullResponse>(response);
   } catch (error) {
     console.error('Scan ticket error:', error);
     throw error;

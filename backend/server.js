@@ -7,7 +7,11 @@ const app = express();
 
 // Basic middleware
 app.use(cors({
-  origin: ['https://www.noon-talks.online', 'http://localhost:3000'],
+  origin: [
+    'https://www.noon-talks.online',
+    'https://noon-talks.online',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 app.use(express.json());
