@@ -8,6 +8,7 @@ import AdminLogin from "@/pages/AdminLogin";
 
 function App() {
   const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+  console.log('App render - isAdmin:', isAdmin);
 
   return (
     <Router>
@@ -17,7 +18,15 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route 
           path="/admin" 
-          element={isAdmin ? <Admin /> : <Navigate to="/admin/login" replace />} 
+          element={
+            isAdmin ? (
+              console.log('Rendering Admin component'),
+              <Admin />
+            ) : (
+              console.log('Redirecting to login'),
+              <Navigate to="/admin/login" replace />
+            )
+          }
         />
         <Route path="/ticket" element={<Ticket />} />
       </Routes>

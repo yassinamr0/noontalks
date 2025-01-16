@@ -28,8 +28,12 @@ export default function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Admin component mounted');
     const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+    console.log('Admin check - isAdmin:', isAdmin);
+    
     if (isAdmin) {
+      console.log('Fetching users...');
       fetchUsers().catch(error => {
         console.error("Error in initial fetch:", error);
         if (error instanceof Error) {
@@ -39,6 +43,7 @@ export default function Admin() {
         }
       });
     } else {
+      console.log('Not admin, redirecting to login');
       navigate("/admin/login");
     }
   }, [navigate]);

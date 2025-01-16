@@ -11,14 +11,24 @@ export default function AdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login attempt with password:', password);
     
     try {
+      console.log('Calling adminLogin...');
       const data = await adminLogin(password);
+      console.log('Login response:', data);
+      
       sessionStorage.setItem("adminToken", data.token);
       sessionStorage.setItem("isAdmin", "true");
       
+      console.log('Session storage set, navigating...');
       toast.success("Login successful");
-      navigate("/admin");
+      
+      // Force a small delay to ensure storage is set
+      setTimeout(() => {
+        console.log('Navigating to /admin');
+        navigate("/admin", { replace: true });
+      }, 100);
     } catch (error) {
       console.error('Login error:', error);
       if (error instanceof Error) {
