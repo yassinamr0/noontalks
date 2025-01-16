@@ -11,13 +11,17 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
+let isConnectedToMongo = false;
+
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
   console.log('Connected to MongoDB');
+  isConnectedToMongo = true;
 }).catch((err) => {
   console.error('MongoDB connection error:', err);
+  isConnectedToMongo = false;
 });
 
 // User schema
@@ -34,7 +38,7 @@ const User = mongoose.model('User', userSchema);
 // Admin token middleware
 const adminAuth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (token !== 'noontalks_admin_token') {
+  if (token !== process.env.ADMIN_TOKEN) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
   next();
@@ -42,16 +46,26 @@ const adminAuth = (req, res, next) => {
 
 // API Routes
 app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  if (password === 'noon2024') {
-    res.json({ token: 'noontalks_admin_token' });
-  } else {
-    res.status(401).json({ message: 'Invalid password' });
+  try {
+    const { password } = req.body;
+    if (password === process.env.ADMIN_TOKEN) {
+      res.json({ token: process.env.ADMIN_TOKEN });
+    } else {
+      res.status(401).json({ message: 'Invalid password' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 });
 
+// Add user endpoint
 app.post('/api/admin/add-user', adminAuth, async (req, res) => {
   try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
     const { name, email, phone } = req.body;
 
     if (!email) {
@@ -68,22 +82,32 @@ app.post('/api/admin/add-user', adminAuth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error adding user:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error while adding user' });
   }
 });
 
+// Get users endpoint
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
     const users = await User.find();
     res.json(users);
   } catch (error) {
     console.error('Error getting users:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error while fetching users' });
   }
 });
 
+// Validate ticket endpoint
 app.post('/api/admin/validate', adminAuth, async (req, res) => {
   try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
     const { qrCode } = req.body;
     const user = await User.findOne({ qrCode });
 
@@ -100,12 +124,17 @@ app.post('/api/admin/validate', adminAuth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error validating user:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error while validating ticket' });
   }
 });
 
+// User login endpoint
 app.post('/api/user/login', async (req, res) => {
   try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
     const { email } = req.body;
 
     if (!email) {
@@ -120,7 +149,7 @@ app.post('/api/user/login', async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error during user login' });
   }
 });
 
@@ -132,6 +161,12 @@ app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ message: 'Internal server error' });
 });
 
 // Export for Vercel
