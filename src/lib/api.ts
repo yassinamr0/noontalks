@@ -57,10 +57,20 @@ const fetchOptions = (method: string, body?: any) => ({
 
 export const adminLogin = async (password: string): Promise<AdminLoginResponse> => {
   try {
-    const response = await fetch(`${API_URL}/admin/login`, 
-      fetchOptions('POST', { password })
-    );
+    console.log('Making login request with password:', password);
+    const url = `${API_URL}/api/admin/login`;
+    console.log('Login URL:', url);
+    
+    const options = fetchOptions('POST', { password });
+    console.log('Request options:', options);
+    
+    const response = await fetch(url, options);
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
     const data = await handleResponse<AdminLoginResponse>(response);
+    console.log('Response data:', data);
+    
     sessionStorage.setItem('adminToken', data.token);
     sessionStorage.setItem('isAdmin', 'true');
     return data;
