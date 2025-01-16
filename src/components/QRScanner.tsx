@@ -2,70 +2,77 @@ import { useState, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { scanTicket } from "@/lib/api";
-import { toast } from "sonner";
+import { toast } from 'sonner';
 
 export default function QRScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [html5QrCode, setHtml5QrCode] = useState<Html5Qrcode | null>(null);
-  const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
-  const [selectedCamera, setSelectedCamera] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Initialize QR code scanner
     const qrCode = new Html5Qrcode("reader");
     setHtml5QrCode(qrCode);
 
-    Html5Qrcode.getCameras()
-      .then((devices) => {
-        const availableCameras = devices.map((device) => ({
-          id: device.id,
-          label: device.label || `Camera ${device.id}`,
-        }));
-        setCameras(availableCameras);
-        // Automatically select back camera if available
-        const backCamera = availableCameras.find((camera) =>
-          camera.label.toLowerCase().includes("back")
-        );
-        if (backCamera) {
-          setSelectedCamera(backCamera.id);
-        } else if (availableCameras.length > 0) {
-          setSelectedCamera(availableCameras[0].id);
-        }
-      })
-      .catch((err) => {
+    // Check for camera access
+    const checkCamera = async () => {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        setHasCamera(devices.length > 0);
+      } catch (err) {
         console.error("Error getting cameras:", err);
-        toast.error("Failed to access camera");
-      });
+        setHasCamera(false);
+      }
+    };
+
+    checkCamera();
 
     return () => {
-      if (qrCode) {
+      if (qrCode.isScanning) {
         qrCode.stop().catch(console.error);
       }
     };
   }, []);
 
+  const requestCameraPermission = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true });
+      const devices = await Html5Qrcode.getCameras();
+      setHasCamera(devices.length > 0);
+    } catch (err) {
+      console.error("Error requesting camera permission:", err);
+      toast.error("Failed to access camera. Please check your camera permissions.");
+    }
+  };
+
   const startScanning = async () => {
-    if (!html5QrCode || !selectedCamera) {
-      toast.error("No camera selected");
+    if (!html5QrCode) {
+      toast.error("Scanner not initialized");
       return;
     }
 
     try {
+      const devices = await Html5Qrcode.getCameras();
+      if (devices.length === 0) {
+        toast.error("No cameras found");
+        return;
+      }
+
+      // Prefer back camera
+      const cameraId = devices.find(camera => 
+        camera.label.toLowerCase().includes('back'))?.id || devices[0].id;
+
       await html5QrCode.start(
-        selectedCamera,
+        cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
         },
         async (decodedText) => {
-          if (isProcessing) return; // Prevent multiple simultaneous scans
-          setIsProcessing(true);
-
           try {
             const response = await scanTicket(decodedText);
             if (response.user) {
               toast.success(`Valid ticket for ${response.user.name}! Entries: ${response.user.entries}`);
-              // Optionally stop scanning after successful scan
               await stopScanning();
             } else {
               toast.error("Invalid ticket");
@@ -76,8 +83,6 @@ export default function QRScanner() {
             } else {
               toast.error("Invalid ticket or error scanning");
             }
-          } finally {
-            setIsProcessing(false);
           }
         },
         () => {} // Ignore failures to prevent spam
@@ -101,38 +106,43 @@ export default function QRScanner() {
     }
   };
 
+  if (hasCamera === null) {
+    return (
+      <div className="text-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[#542c6a] mx-auto"></div>
+        <p className="mt-2">Checking camera access...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div id="reader" className="w-full max-w-[500px] mx-auto"></div>
       
-      {cameras.length === 0 ? (
-        <div className="text-center text-gray-600">
+      <div className="flex justify-center space-x-2">
+        {!hasCamera ? (
           <Button
-            onClick={() => window.location.reload()}
+            onClick={requestCameraPermission}
             className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
           >
             Allow Camera Access
           </Button>
-        </div>
-      ) : (
-        <div className="flex justify-center space-x-2">
-          {!isScanning ? (
-            <Button
-              onClick={startScanning}
-              className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
-            >
-              Start Scanning
-            </Button>
-          ) : (
-            <Button
-              onClick={stopScanning}
-              variant="destructive"
-            >
-              Stop Scanning
-            </Button>
-          )}
-        </div>
-      )}
+        ) : !isScanning ? (
+          <Button
+            onClick={startScanning}
+            className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
+          >
+            Start Scanning
+          </Button>
+        ) : (
+          <Button
+            onClick={stopScanning}
+            variant="destructive"
+          >
+            Stop Scanning
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

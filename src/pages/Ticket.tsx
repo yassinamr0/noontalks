@@ -96,10 +96,12 @@ export default function Ticket() {
                   >
                     <QRCode
                       value={user.email}
-                      size={180}
+                      size={171}
                       level="H"
                       includeMargin={false}
                       className="mx-auto"
+                      fgColor="#000000"
+                      bgColor="transparent"
                     />
                   </div>
                 </div>
