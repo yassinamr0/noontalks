@@ -60,7 +60,7 @@ const adminAuth = (req, res, next) => {
 };
 
 // API Routes
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   console.log('Login attempt:', { body: req.body });
   try {
     const { password } = req.body;
@@ -71,16 +71,27 @@ app.post('/api/admin/login', (req, res) => {
       return res.status(400).json({ message: 'Password is required' });
     }
     
+    if (!process.env.ADMIN_TOKEN) {
+      console.error('ADMIN_TOKEN not set in environment variables');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
     if (password === process.env.ADMIN_TOKEN) {
       console.log('Password matched, sending token');
-      res.json({ token: process.env.ADMIN_TOKEN });
+      return res.json({ 
+        token: process.env.ADMIN_TOKEN,
+        message: 'Login successful' 
+      });
     } else {
       console.log('Password did not match');
-      res.status(401).json({ message: 'Invalid password' });
+      return res.status(401).json({ message: 'Invalid password' });
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login', error: error.message });
+    return res.status(500).json({ 
+      message: 'Server error during login', 
+      error: error.message 
+    });
   }
 });
 

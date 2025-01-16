@@ -29,11 +29,19 @@ interface ScanTicketFullResponse extends ApiResponse {
 }
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
+  const contentType = response.headers.get('content-type');
+  const isJson = contentType && contentType.includes('application/json');
+  const data = isJson ? await response.json() : await response.text();
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Network error' }));
-    throw new Error(errorData.message || 'Network error');
+    if (isJson && data.message) {
+      throw new Error(data.message);
+    } else {
+      throw new Error('Network error');
+    }
   }
-  return response.json();
+
+  return data;
 };
 
 const fetchOptions = (method: string, body?: any) => ({
@@ -64,54 +72,48 @@ export const adminLogin = async (password: string): Promise<AdminLoginResponse> 
 
 export const addUser = async (userData: { name?: string; email: string; phone?: string }): Promise<User> => {
   try {
-    const response = await fetch(
-      `${API_URL}/admin/add-user`,
+    const response = await fetch(`${API_URL}/admin/add-user`, 
       fetchOptions('POST', userData)
     );
     return handleResponse<User>(response);
   } catch (error) {
-    console.error('Add user error:', error);
+    console.error('Error adding user:', error);
     throw error;
   }
 };
 
 export const getUsers = async (): Promise<User[]> => {
   try {
-    const response = await fetch(
-      `${API_URL}/admin/users`,
+    const response = await fetch(`${API_URL}/admin/users`, 
       fetchOptions('GET')
     );
     return handleResponse<User[]>(response);
   } catch (error) {
-    console.error('Get users error:', error);
+    console.error('Error fetching users:', error);
     throw error;
   }
 };
 
 export const loginUser = async (email: string): Promise<User> => {
   try {
-    const response = await fetch(
-      `${API_URL}/auth/login`,
+    const response = await fetch(`${API_URL}/user/login`, 
       fetchOptions('POST', { email })
     );
-    const data = await handleResponse<{ user: User }>(response);
-    sessionStorage.setItem('currentUser', JSON.stringify(data.user));
-    return data.user;
+    return handleResponse<User>(response);
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Error logging in:', error);
     throw error;
   }
 };
 
 export const scanTicket = async (email: string): Promise<ScanTicketFullResponse> => {
   try {
-    const response = await fetch(
-      `${API_URL}/admin/scan`,
+    const response = await fetch(`${API_URL}/admin/validate`, 
       fetchOptions('POST', { email })
     );
     return handleResponse<ScanTicketFullResponse>(response);
   } catch (error) {
-    console.error('Scan ticket error:', error);
+    console.error('Error scanning ticket:', error);
     throw error;
   }
 };
