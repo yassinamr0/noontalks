@@ -134,3 +134,11 @@ app.get('*', (req, res) => {
 
 // Export for Vercel
 module.exports = app;
+
+// Start server if not in Vercel
+if (process.env.NODE_ENV !== 'production') {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
