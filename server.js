@@ -63,9 +63,20 @@ const User = mongoose.model('User', userSchema);
 // Admin token middleware
 const adminAuth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (token !== process.env.ADMIN_TOKEN) {
-    return res.status(401).json({ message: 'Unauthorized' });
+  console.log('Checking admin token:', token);
+  console.log('Expected token:', process.env.ADMIN_TOKEN);
+  
+  if (!token) {
+    console.log('No token provided');
+    return res.status(401).json({ message: 'No token provided' });
   }
+  
+  if (token !== process.env.ADMIN_TOKEN) {
+    console.log('Invalid token');
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+  
+  console.log('Token valid, proceeding');
   next();
 };
 

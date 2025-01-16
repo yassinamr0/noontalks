@@ -34,6 +34,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   const data = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Unauthorized');
+    }
     if (isJson && data.message) {
       throw new Error(data.message);
     } else {

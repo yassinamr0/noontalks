@@ -28,39 +28,42 @@ export default function Admin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Admin component mounted');
-    const isAdmin = sessionStorage.getItem("isAdmin") === "true";
-    console.log('Admin check - isAdmin:', isAdmin);
-    
-    if (isAdmin) {
-      console.log('Fetching users...');
-      fetchUsers().catch(error => {
-        console.error("Error in initial fetch:", error);
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("Failed to fetch users");
-        }
-      });
-    } else {
-      console.log('Not admin, redirecting to login');
-      navigate("/admin/login");
-    }
-  }, [navigate]);
-
-  const fetchUsers = async () => {
-    try {
-      const fetchedUsers = await getUsers();
-      setUsers(fetchedUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("Failed to fetch users");
+    const checkAuth = () => {
+      const token = sessionStorage.getItem("adminToken");
+      const isAdmin = sessionStorage.getItem("isAdmin") === "true";
+      
+      console.log('Admin auth check:', { token, isAdmin });
+      
+      if (!token || !isAdmin) {
+        console.log('Not authenticated, redirecting to login');
+        navigate("/admin/login");
+        return false;
       }
-    }
-  };
+      return true;
+    };
+
+    const initializeAdmin = async () => {
+      if (checkAuth()) {
+        try {
+          console.log('Fetching users...');
+          const fetchedUsers = await getUsers();
+          console.log('Users fetched:', fetchedUsers);
+          setUsers(fetchedUsers);
+        } catch (error) {
+          console.error('Error fetching users:', error);
+          if (error instanceof Error && error.message === 'Unauthorized') {
+            sessionStorage.removeItem('adminToken');
+            sessionStorage.removeItem('isAdmin');
+            navigate("/admin/login");
+          } else {
+            toast.error('Failed to fetch users');
+          }
+        }
+      }
+    };
+
+    initializeAdmin();
+  }, [navigate]);
 
   const handleAddUser = async () => {
     try {
@@ -92,11 +95,18 @@ export default function Admin() {
       });
       
       // Refresh user list
-      await fetchUsers();
+      const fetchedUsers = await getUsers();
+      setUsers(fetchedUsers);
     } catch (error) {
       console.error("Error adding user:", error);
       if (error instanceof Error) {
-        toast.error(error.message);
+        if (error.message === 'Unauthorized') {
+          sessionStorage.removeItem('adminToken');
+          sessionStorage.removeItem('isAdmin');
+          navigate("/admin/login");
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.error("Failed to add user");
       }
