@@ -67,37 +67,66 @@ export default function Ticket() {
     <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="relative bg-white rounded-lg shadow-xl overflow-hidden">
-            {/* Ticket Design Background */}
-            <img
-              src="/ticketdesign.png"
-              alt="Ticket Design"
-              className="w-full h-auto"
-              style={{ maxHeight: '600px', objectFit: 'contain' }}
-            />
-            
-            {/* QR Code Overlay */}
-            <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-              <div className="bg-white p-4 rounded-lg">
-                <QRCode
-                  value={user.email}
-                  size={180}
-                  level="H"
-                  includeMargin={false}
-                  className="mx-auto"
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <img
+                  src="/logo-removebg-preview.png"
+                  alt="Noon Talks Logo"
+                  className="mx-auto h-16 w-auto mb-4"
                 />
+                <h2 className="text-2xl font-bold text-[#542c6a]">Your Ticket</h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* Ticket with QR Code */}
+                <div className="relative">
+                  <img
+                    src="/ticketdesign.png"
+                    alt="Ticket Design"
+                    className="w-full h-auto"
+                  />
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <QRCode
+                      value={user.email}
+                      size={180}
+                      level="H"
+                      includeMargin={false}
+                      className="mx-auto"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-center mt-6">
+                  <p className="text-lg font-semibold text-[#542c6a]">
+                    {user.name || 'Guest'}
+                  </p>
+                  <p className="text-gray-600">{user.email}</p>
+                  {user.phone && (
+                    <p className="text-gray-600">{user.phone}</p>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    Entries: {user.entries}
+                  </p>
+                  {user.lastEntry && (
+                    <p className="text-sm text-gray-500">
+                      Last Entry: {new Date(user.lastEntry).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-4">
+                  <Button
+                    onClick={handleLogout}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Back to Home
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <Button
-              onClick={handleLogout}
-              className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
-            >
-              Back to Home
-            </Button>
           </div>
         </div>
       </div>
