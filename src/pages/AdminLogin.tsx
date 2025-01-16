@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
@@ -7,7 +6,6 @@ import { adminLogin } from '@/lib/api';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,26 +20,17 @@ export default function AdminLogin() {
       sessionStorage.setItem("isAdmin", "true");
       
       console.log('Session storage set, showing toast...');
-      toast.success("Login successful!", {
-        duration: 2000,
-        position: "top-center",
-      });
+      toast.success("Login successful!");
       
-      console.log('Navigating to /admin');
-      navigate("/admin", { replace: true });
+      console.log('Redirecting to admin panel');
+      window.location.href = "https://www.noon-talks.online/admin";
       
     } catch (error) {
       console.error('Login error:', error);
       if (error instanceof Error) {
-        toast.error(error.message, {
-          duration: 3000,
-          position: "top-center",
-        });
+        toast.error(error.message);
       } else {
-        toast.error('Login failed', {
-          duration: 3000,
-          position: "top-center",
-        });
+        toast.error('Login failed');
       }
     }
   };
