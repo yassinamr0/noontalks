@@ -6,8 +6,10 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
 
+// Load environment variables
 dotenv.config();
 
+// ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -35,16 +37,17 @@ app.options('*', cors());
 // MongoDB connection
 let isConnectedToMongo = false;
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
+try {
+  await mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
   console.log('Connected to MongoDB');
   isConnectedToMongo = true;
-}).catch((err) => {
+} catch (err) {
   console.error('MongoDB connection error:', err);
   isConnectedToMongo = false;
-});
+}
 
 // User schema
 const userSchema = new mongoose.Schema({
