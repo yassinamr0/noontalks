@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
@@ -30,7 +30,7 @@ function App() {
         />
         <Route path="/ticket" element={<Ticket />} />
       </Routes>
-      <Toaster />
+      <Toaster richColors position="top-center" />
     </Router>
   );
 }

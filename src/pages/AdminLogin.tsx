@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Toaster } from "sonner";
 import { toast } from 'sonner';
 import { adminLogin } from '@/lib/api';
 
@@ -21,14 +22,14 @@ export default function AdminLogin() {
       sessionStorage.setItem("adminToken", data.token);
       sessionStorage.setItem("isAdmin", "true");
       
-      console.log('Session storage set, navigating...');
-      toast.success("Login successful");
+      console.log('Session storage set, showing toast...');
+      toast.success("Login successful!");
       
-      // Force a small delay to ensure storage is set
+      // Force a small delay to ensure storage is set and toast is shown
       setTimeout(() => {
         console.log('Navigating to /admin');
         navigate("/admin", { replace: true });
-      }, 100);
+      }, 1000);
     } catch (error) {
       console.error('Login error:', error);
       if (error instanceof Error) {
@@ -63,6 +64,7 @@ export default function AdminLogin() {
           </Button>
         </form>
       </div>
+      <Toaster richColors position="top-center" />
     </div>
   );
 }
