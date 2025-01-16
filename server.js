@@ -7,14 +7,23 @@ require('dotenv').config();
 const app = express();
 
 // Basic middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
+  if (req.body) console.log('Body:', req.body);
   next();
 });
+
+// OPTIONS handler for preflight requests
+app.options('*', cors());
 
 // MongoDB connection
 let isConnectedToMongo = false;
