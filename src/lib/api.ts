@@ -58,7 +58,7 @@ const fetchOptions = (method: string, body?: any) => ({
 export const adminLogin = async (password: string): Promise<AdminLoginResponse> => {
   try {
     console.log('Making login request with password:', password);
-    const url = `${API_URL}/api/admin/login`;
+    const url = `/api/admin/login`;
     console.log('Login URL:', url);
     
     const options = fetchOptions('POST', { password });
@@ -82,7 +82,7 @@ export const adminLogin = async (password: string): Promise<AdminLoginResponse> 
 
 export const addUser = async (userData: { name?: string; email: string; phone?: string }): Promise<User> => {
   try {
-    const response = await fetch(`${API_URL}/admin/add-user`, 
+    const response = await fetch(`/api/admin/add-user`, 
       fetchOptions('POST', userData)
     );
     return handleResponse<User>(response);
@@ -94,7 +94,7 @@ export const addUser = async (userData: { name?: string; email: string; phone?: 
 
 export const getUsers = async (): Promise<User[]> => {
   try {
-    const response = await fetch(`${API_URL}/admin/users`, 
+    const response = await fetch(`/api/admin/users`, 
       fetchOptions('GET')
     );
     return handleResponse<User[]>(response);
@@ -106,7 +106,7 @@ export const getUsers = async (): Promise<User[]> => {
 
 export const loginUser = async (email: string): Promise<User> => {
   try {
-    const response = await fetch(`${API_URL}/user/login`, 
+    const response = await fetch(`/api/user/login`, 
       fetchOptions('POST', { email })
     );
     return handleResponse<User>(response);
@@ -118,7 +118,7 @@ export const loginUser = async (email: string): Promise<User> => {
 
 export const scanTicket = async (email: string): Promise<ScanTicketFullResponse> => {
   try {
-    const response = await fetch(`${API_URL}/admin/validate`, 
+    const response = await fetch(`/api/admin/validate`, 
       fetchOptions('POST', { email })
     );
     return handleResponse<ScanTicketFullResponse>(response);
