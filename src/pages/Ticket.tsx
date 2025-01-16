@@ -87,7 +87,13 @@ export default function Ticket() {
                     alt="Ticket Design"
                     className="w-full h-auto"
                   />
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div 
+                    className="absolute left-1/2 transform -translate-x-1/2" 
+                    style={{ 
+                      top: 'calc(50% - -3mm)',  // Move down by 3mm (approximately 0.3cm)
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  >
                     <QRCode
                       value={user.email}
                       size={180}

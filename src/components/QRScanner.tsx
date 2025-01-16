@@ -15,36 +15,34 @@ export default function QRScanner() {
     const qrCode = new Html5Qrcode("reader");
     setHtml5QrCode(qrCode);
 
-    if (isScanning) {
-      Html5Qrcode.getCameras()
-        .then((devices) => {
-          const availableCameras = devices.map((device) => ({
-            id: device.id,
-            label: device.label || `Camera ${device.id}`,
-          }));
-          setCameras(availableCameras);
-          // Automatically select back camera if available
-          const backCamera = availableCameras.find((camera) =>
-            camera.label.toLowerCase().includes("back")
-          );
-          if (backCamera) {
-            setSelectedCamera(backCamera.id);
-          } else if (availableCameras.length > 0) {
-            setSelectedCamera(availableCameras[0].id);
-          }
-        })
-        .catch((err) => {
-          console.error("Error getting cameras:", err);
-          toast.error("Failed to access camera");
-        });
-    }
+    Html5Qrcode.getCameras()
+      .then((devices) => {
+        const availableCameras = devices.map((device) => ({
+          id: device.id,
+          label: device.label || `Camera ${device.id}`,
+        }));
+        setCameras(availableCameras);
+        // Automatically select back camera if available
+        const backCamera = availableCameras.find((camera) =>
+          camera.label.toLowerCase().includes("back")
+        );
+        if (backCamera) {
+          setSelectedCamera(backCamera.id);
+        } else if (availableCameras.length > 0) {
+          setSelectedCamera(availableCameras[0].id);
+        }
+      })
+      .catch((err) => {
+        console.error("Error getting cameras:", err);
+        toast.error("Failed to access camera");
+      });
 
     return () => {
       if (qrCode) {
         qrCode.stop().catch(console.error);
       }
     };
-  }, [isScanning]);
+  }, []);
 
   const startScanning = async () => {
     if (!html5QrCode || !selectedCamera) {
@@ -103,57 +101,38 @@ export default function QRScanner() {
     }
   };
 
-  const handleCameraChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCamera = e.target.value;
-    if (html5QrCode?.isScanning) {
-      try {
-        await stopScanning();
-        setSelectedCamera(newCamera);
-        if (isScanning) {
-          await startScanning();
-        }
-      } catch (err) {
-        console.error("Error switching camera:", err);
-        toast.error("Error switching camera");
-      }
-    } else {
-      setSelectedCamera(newCamera);
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div id="reader" className="w-full max-w-[500px] mx-auto"></div>
       
-      <div className="flex flex-col gap-4 items-center">
-        {cameras.length === 0 ? (
-          <div className="text-red-500">No cameras found</div>
-        ) : (
-          <>
+      {cameras.length === 0 ? (
+        <div className="text-center text-gray-600">
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
+          >
+            Allow Camera Access
+          </Button>
+        </div>
+      ) : (
+        <div className="flex justify-center space-x-2">
+          {!isScanning ? (
             <Button
-              onClick={isScanning ? stopScanning : startScanning}
-              className="bg-[#542c6a] hover:bg-opacity-90"
-              disabled={isProcessing || !selectedCamera}
+              onClick={startScanning}
+              className="bg-[#542c6a] hover:bg-[#3f1f4f] text-white"
             >
-              {isProcessing ? "Processing..." : isScanning ? "Stop Scanner" : "Start Scanner"}
+              Start Scanning
             </Button>
-
-            <select
-              value={selectedCamera}
-              onChange={handleCameraChange}
-              className="w-full max-w-[300px] p-2 rounded border border-gray-300"
-              disabled={isProcessing}
+          ) : (
+            <Button
+              onClick={stopScanning}
+              variant="destructive"
             >
-              <option value="">Select a camera</option>
-              {cameras.map((camera) => (
-                <option key={camera.id} value={camera.id}>
-                  {camera.label}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-      </div>
+              Stop Scanning
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
