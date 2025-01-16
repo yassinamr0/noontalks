@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from 'sonner';
@@ -6,6 +7,7 @@ import { adminLogin } from '@/lib/api';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +27,8 @@ export default function AdminLogin() {
         position: "top-center",
       });
       
-      // Immediate redirect after successful login
-      console.log('Redirecting to /admin');
-      window.location.href = "/admin";
+      console.log('Navigating to /admin');
+      navigate("/admin", { replace: true });
       
     } catch (error) {
       console.error('Login error:', error);
