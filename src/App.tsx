@@ -11,27 +11,29 @@ function App() {
   console.log('App render - isAdmin:', isAdmin);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route 
-          path="/admin" 
-          element={
-            isAdmin ? (
-              console.log('Rendering Admin component'),
-              <Admin />
-            ) : (
-              console.log('Redirecting to login'),
-              <Navigate to="/admin/login" replace />
-            )
-          }
-        />
-        <Route path="/ticket" element={<Ticket />} />
-      </Routes>
-      <Toaster richColors position="top-center" />
-    </Router>
+    <>
+      <Toaster />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route 
+            path="/admin" 
+            element={
+              isAdmin ? (
+                console.log('Rendering Admin component'),
+                <Admin />
+              ) : (
+                console.log('Redirecting to login'),
+                <Navigate to="/admin/login" replace />
+              )
+            }
+          />
+          <Route path="/ticket" element={<Ticket />} />
+        </Routes>
+      </Router>
+    </>
   );
 }
 

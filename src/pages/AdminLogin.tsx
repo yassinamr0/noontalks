@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Toaster } from "sonner";
 import { toast } from 'sonner';
 import { adminLogin } from '@/lib/api';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,19 +20,28 @@ export default function AdminLogin() {
       sessionStorage.setItem("isAdmin", "true");
       
       console.log('Session storage set, showing toast...');
-      toast.success("Login successful!");
+      toast.success("Login successful!", {
+        duration: 2000,
+        position: "top-center",
+      });
       
       // Force a small delay to ensure storage is set and toast is shown
       setTimeout(() => {
         console.log('Navigating to /admin');
-        navigate("/admin", { replace: true });
-      }, 1000);
+        window.location.href = "/admin";
+      }, 1500);
     } catch (error) {
       console.error('Login error:', error);
       if (error instanceof Error) {
-        toast.error(error.message);
+        toast.error(error.message, {
+          duration: 3000,
+          position: "top-center",
+        });
       } else {
-        toast.error('Login failed');
+        toast.error('Login failed', {
+          duration: 3000,
+          position: "top-center",
+        });
       }
     }
   };
@@ -64,7 +70,6 @@ export default function AdminLogin() {
           </Button>
         </form>
       </div>
-      <Toaster richColors position="top-center" />
     </div>
   );
 }
