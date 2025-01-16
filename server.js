@@ -69,6 +69,15 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
+// Debug endpoint (temporary)
+app.get('/api/debug/env', (req, res) => {
+  res.json({
+    hasAdminToken: !!process.env.ADMIN_TOKEN,
+    hasMongoUri: !!process.env.MONGODB_URI,
+    nodeEnv: process.env.NODE_ENV
+  });
+});
+
 // API Routes
 app.post('/api/admin/login', async (req, res) => {
   console.log('Login attempt:', { body: req.body });
