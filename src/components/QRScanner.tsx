@@ -11,7 +11,7 @@ export default function QRScanner() {
 
   useEffect(() => {
     // Initialize QR code scanner
-    const qrCode = new Html5Qrcode("reader");
+    const qrCode = new Html5Qrcode("qr-reader");
     setHtml5QrCode(qrCode);
 
     // Check for camera access
@@ -32,7 +32,7 @@ export default function QRScanner() {
         qrCode.stop().catch(console.error);
       }
     };
-  }, []);
+  }, []); // Run once on mount
 
   const requestCameraPermission = async () => {
     try {
@@ -117,7 +117,7 @@ export default function QRScanner() {
 
   return (
     <div className="space-y-4">
-      <div id="reader" className="w-full max-w-[500px] mx-auto"></div>
+      <div id="qr-reader" className="w-full max-w-[500px] mx-auto"></div>
       
       <div className="flex justify-center space-x-2">
         {!hasCamera ? (
