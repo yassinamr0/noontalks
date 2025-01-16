@@ -4,6 +4,7 @@ import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
 import Ticket from "@/pages/Ticket";
+import AdminLogin from "@/pages/AdminLogin";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/ticket" element={<Ticket />} />
       </Routes>

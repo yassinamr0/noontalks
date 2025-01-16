@@ -125,11 +125,13 @@ app.post('/api/user/login', async (req, res) => {
 });
 
 // Serve static files from the dist directory
-app.use(express.static('dist'));
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// Handle React routing
+// Handle React routing - must be after API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  }
 });
 
 // Export for Vercel
