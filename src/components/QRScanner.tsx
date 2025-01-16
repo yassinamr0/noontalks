@@ -27,21 +27,24 @@ export default function QRScanner() {
   }, []);
 
   const findBackCamera = (cameras: Camera[]) => {
-    // Try to find a back camera
-    const backCamera = cameras.find(camera => 
+    return cameras.find(camera => 
       camera.label.toLowerCase().includes('back') || 
       camera.label.toLowerCase().includes('rear') ||
       camera.label.toLowerCase().includes('environment')
-    );
-    return backCamera || cameras[0]; // Fallback to first camera if no back camera found
+    ) || cameras[cameras.length - 1]; // Use last camera as it's often the back camera
   };
 
   const requestCameraPermission = async () => {
     try {
-      // First request camera permission
-      await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Prefer back camera
+      // First request camera permission with environment facing mode
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" }
+        }
       });
+      
+      // Close the stream immediately as we don't need it
+      stream.getTracks().forEach(track => track.stop());
       
       // Then get available cameras
       const devices = await Html5Qrcode.getCameras();
@@ -54,10 +57,10 @@ export default function QRScanner() {
       
       // Select back camera by default
       if (availableCameras.length > 0) {
-        const defaultCamera = findBackCamera(availableCameras);
-        setSelectedCamera(defaultCamera.id);
+        const backCamera = findBackCamera(availableCameras);
+        setSelectedCamera(backCamera.id);
         // Start scanning automatically with the back camera
-        startScanningWithCamera(defaultCamera.id);
+        await startScanningWithCamera(backCamera.id);
       }
     } catch (err) {
       console.error("Error requesting camera permission:", err);
@@ -82,15 +85,16 @@ export default function QRScanner() {
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1
         },
         async (decodedText) => {
           try {
             const response = await scanTicket(decodedText);
-            if (response.user) {
-              toast.success(`Valid ticket for ${response.user.name}! Entries: ${response.user.entries}`);
+            if (response.isValid && response.user) {
+              toast.success(`Valid ticket for ${response.user.name}!`);
               await stopScanning();
             } else {
-              toast.error("Invalid ticket");
+              toast.error(response.message || "Invalid ticket");
             }
           } catch (error) {
             if (error instanceof Error) {
@@ -112,9 +116,7 @@ export default function QRScanner() {
 
   const handleCameraChange = async (newCameraId: string) => {
     setSelectedCamera(newCameraId);
-    if (isScanning) {
-      await startScanningWithCamera(newCameraId);
-    }
+    await startScanningWithCamera(newCameraId);
   };
 
   const stopScanning = async () => {
