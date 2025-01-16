@@ -15,34 +15,36 @@ export default function QRScanner() {
     const qrCode = new Html5Qrcode("reader");
     setHtml5QrCode(qrCode);
 
-    Html5Qrcode.getCameras()
-      .then((devices) => {
-        const availableCameras = devices.map((device) => ({
-          id: device.id,
-          label: device.label || `Camera ${device.id}`,
-        }));
-        setCameras(availableCameras);
-        // Automatically select back camera if available
-        const backCamera = availableCameras.find((camera) =>
-          camera.label.toLowerCase().includes("back")
-        );
-        if (backCamera) {
-          setSelectedCamera(backCamera.id);
-        } else if (availableCameras.length > 0) {
-          setSelectedCamera(availableCameras[0].id);
-        }
-      })
-      .catch((err) => {
-        console.error("Error getting cameras", err);
-        toast.error("Could not access cameras. Please check camera permissions.");
-      });
+    if (isScanning) {
+      Html5Qrcode.getCameras()
+        .then((devices) => {
+          const availableCameras = devices.map((device) => ({
+            id: device.id,
+            label: device.label || `Camera ${device.id}`,
+          }));
+          setCameras(availableCameras);
+          // Automatically select back camera if available
+          const backCamera = availableCameras.find((camera) =>
+            camera.label.toLowerCase().includes("back")
+          );
+          if (backCamera) {
+            setSelectedCamera(backCamera.id);
+          } else if (availableCameras.length > 0) {
+            setSelectedCamera(availableCameras[0].id);
+          }
+        })
+        .catch((err) => {
+          console.error("Error getting cameras:", err);
+          toast.error("Failed to access camera");
+        });
+    }
 
     return () => {
-      if (html5QrCode?.isScanning) {
-        html5QrCode.stop().catch(console.error);
+      if (qrCode) {
+        qrCode.stop().catch(console.error);
       }
     };
-  }, []);
+  }, [isScanning]);
 
   const startScanning = async () => {
     if (!html5QrCode || !selectedCamera) {
