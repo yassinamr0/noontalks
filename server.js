@@ -70,7 +70,7 @@ const adminAuth = (req, res, next) => {
 };
 
 // Debug endpoint (temporary)
-app.get('/debug/env', (req, res) => {
+app.get('/api/debug/env', (req, res) => {
   res.json({
     hasAdminToken: !!process.env.ADMIN_TOKEN,
     hasAdminPassword: !!process.env.ADMIN_PASSWORD,
@@ -80,7 +80,7 @@ app.get('/debug/env', (req, res) => {
 });
 
 // API Routes
-app.post('/admin/login', async (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   console.log('Login attempt:', { body: req.body });
   try {
     const { password } = req.body;
@@ -116,7 +116,7 @@ app.post('/admin/login', async (req, res) => {
 });
 
 // Add user endpoint
-app.post('/admin/add-user', adminAuth, async (req, res) => {
+app.post('/api/admin/add-user', adminAuth, async (req, res) => {
   try {
     if (!isConnectedToMongo) {
       return res.status(503).json({ message: 'Database connection not available' });
@@ -143,7 +143,7 @@ app.post('/admin/add-user', adminAuth, async (req, res) => {
 });
 
 // Get users endpoint
-app.get('/admin/users', adminAuth, async (req, res) => {
+app.get('/api/admin/users', adminAuth, async (req, res) => {
   try {
     if (!isConnectedToMongo) {
       return res.status(503).json({ message: 'Database connection not available' });
@@ -158,7 +158,7 @@ app.get('/admin/users', adminAuth, async (req, res) => {
 });
 
 // Validate ticket endpoint
-app.post('/admin/validate', adminAuth, async (req, res) => {
+app.post('/api/admin/validate', adminAuth, async (req, res) => {
   try {
     if (!isConnectedToMongo) {
       return res.status(503).json({ message: 'Database connection not available' });
@@ -185,7 +185,7 @@ app.post('/admin/validate', adminAuth, async (req, res) => {
 });
 
 // User login endpoint
-app.post('/user/login', async (req, res) => {
+app.post('/api/user/login', async (req, res) => {
   try {
     if (!isConnectedToMongo) {
       return res.status(503).json({ message: 'Database connection not available' });
