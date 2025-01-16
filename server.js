@@ -1,8 +1,15 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -206,7 +213,7 @@ app.use((err, req, res, next) => {
 });
 
 // Export for Vercel
-module.exports = app;
+export default app;
 
 // Start server if not in Vercel
 if (process.env.NODE_ENV !== 'production') {
