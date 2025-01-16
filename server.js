@@ -73,6 +73,7 @@ const adminAuth = (req, res, next) => {
 app.get('/api/debug/env', (req, res) => {
   res.json({
     hasAdminToken: !!process.env.ADMIN_TOKEN,
+    hasAdminPassword: !!process.env.ADMIN_PASSWORD,
     hasMongoUri: !!process.env.MONGODB_URI,
     nodeEnv: process.env.NODE_ENV
   });
@@ -84,18 +85,18 @@ app.post('/api/admin/login', async (req, res) => {
   try {
     const { password } = req.body;
     console.log('Password received:', password);
-    console.log('Expected password:', process.env.ADMIN_TOKEN);
+    console.log('Expected password:', process.env.ADMIN_PASSWORD);
     
     if (!password) {
       return res.status(400).json({ message: 'Password is required' });
     }
     
-    if (!process.env.ADMIN_TOKEN) {
-      console.error('ADMIN_TOKEN not set in environment variables');
+    if (!process.env.ADMIN_PASSWORD) {
+      console.error('ADMIN_PASSWORD not set in environment variables');
       return res.status(500).json({ message: 'Server configuration error' });
     }
     
-    if (password === process.env.ADMIN_TOKEN) {
+    if (password === process.env.ADMIN_PASSWORD) {
       console.log('Password matched, sending token');
       return res.json({ 
         token: process.env.ADMIN_TOKEN,
