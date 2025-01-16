@@ -175,23 +175,37 @@ app.post('/api/admin/validate', adminAuth, async (req, res) => {
       return res.status(503).json({ message: 'Database connection not available' });
     }
 
-    const { qrCode } = req.body;
-    const user = await User.findOne({ qrCode });
+    const { email } = req.body;
+    const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'Invalid QR code' });
+      return res.status(404).json({ 
+        isValid: false,
+        message: 'Invalid ticket' 
+      });
     }
 
     if (user.attended) {
-      return res.status(400).json({ message: 'User has already attended' });
+      return res.status(400).json({ 
+        isValid: false,
+        message: 'User has already attended' 
+      });
     }
 
     user.attended = true;
     await user.save();
-    res.json(user);
+    res.json({ 
+      isValid: true,
+      user,
+      message: 'Ticket validated successfully' 
+    });
   } catch (error) {
     console.error('Error validating user:', error);
-    res.status(500).json({ message: 'Server error while validating ticket', error: error.message });
+    res.status(500).json({ 
+      isValid: false,
+      message: 'Server error while validating ticket', 
+      error: error.message 
+    });
   }
 });
 

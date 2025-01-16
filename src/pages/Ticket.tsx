@@ -96,7 +96,7 @@ export default function Ticket() {
                   >
                     <QRCode
                       value={user.email}
-                      size={171}
+                      size={162}
                       level="H"
                       includeMargin={false}
                       className="mx-auto"
