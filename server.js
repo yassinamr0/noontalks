@@ -10,6 +10,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
 // MongoDB connection
 let isConnectedToMongo = false;
 
@@ -46,16 +52,26 @@ const adminAuth = (req, res, next) => {
 
 // API Routes
 app.post('/api/admin/login', (req, res) => {
+  console.log('Login attempt:', { body: req.body });
   try {
     const { password } = req.body;
+    console.log('Password received:', password);
+    console.log('Expected password:', process.env.ADMIN_TOKEN);
+    
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+    
     if (password === process.env.ADMIN_TOKEN) {
+      console.log('Password matched, sending token');
       res.json({ token: process.env.ADMIN_TOKEN });
     } else {
+      console.log('Password did not match');
       res.status(401).json({ message: 'Invalid password' });
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ message: 'Server error during login', error: error.message });
   }
 });
 
@@ -82,7 +98,7 @@ app.post('/api/admin/add-user', adminAuth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error adding user:', error);
-    res.status(500).json({ message: 'Server error while adding user' });
+    res.status(500).json({ message: 'Server error while adding user', error: error.message });
   }
 });
 
@@ -97,7 +113,7 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
     res.json(users);
   } catch (error) {
     console.error('Error getting users:', error);
-    res.status(500).json({ message: 'Server error while fetching users' });
+    res.status(500).json({ message: 'Server error while fetching users', error: error.message });
   }
 });
 
@@ -124,7 +140,7 @@ app.post('/api/admin/validate', adminAuth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error validating user:', error);
-    res.status(500).json({ message: 'Server error while validating ticket' });
+    res.status(500).json({ message: 'Server error while validating ticket', error: error.message });
   }
 });
 
@@ -149,7 +165,7 @@ app.post('/api/user/login', async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Server error during user login' });
+    res.status(500).json({ message: 'Server error during user login', error: error.message });
   }
 });
 
@@ -166,7 +182,7 @@ app.get('*', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
 // Export for Vercel
