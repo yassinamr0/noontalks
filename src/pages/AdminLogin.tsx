@@ -25,11 +25,10 @@ export default function AdminLogin() {
         position: "top-center",
       });
       
-      // Force a small delay to ensure storage is set and toast is shown
-      setTimeout(() => {
-        console.log('Navigating to /admin');
-        window.location.href = "/admin";
-      }, 1500);
+      // Immediate redirect after successful login
+      console.log('Redirecting to /admin');
+      window.location.href = "/admin";
+      
     } catch (error) {
       console.error('Login error:', error);
       if (error instanceof Error) {
