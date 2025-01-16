@@ -18,6 +18,10 @@
   ],
   "routes": [
     {
+      "src": "/api/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
       "src": "/api/(.*)",
       "methods": ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
       "headers": {
