@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [".env"]
-      }
+      "use": "@vercel/node"
     },
     {
       "src": "package.json",
@@ -18,10 +15,6 @@
   ],
   "routes": [
     {
-      "src": "/api/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
       "src": "/api/(.*)",
       "methods": ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
       "headers": {
@@ -29,7 +22,7 @@
         "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
       },
-      "dest": "/server.js"
+      "dest": "server.js"
     },
     {
       "handle": "filesystem"
@@ -42,8 +35,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
