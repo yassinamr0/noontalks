@@ -144,6 +144,28 @@ html, body {
   padding: 0;
 }
 
+/* Button positioning and sizing */
+.button-container {
+  padding-top: 60vh; /* Mobile: 60vh (15% up from 75vh) */
+}
+
+.ticket-button {
+  padding: 2.25rem 4rem; /* Mobile: 3x larger */
+  font-size: 1.5rem;
+}
+
+/* Desktop responsive */
+@media (min-width: 769px) {
+  .button-container {
+    padding-top: 85vh; /* Desktop: 85vh (10% down from 75vh) */
+  }
+  
+  .ticket-button {
+    padding: 2.25rem 4rem; /* Desktop: 3x larger */
+    font-size: 1.5rem;
+  }
+}
+
 /* Mobile responsive background scaling */
 @media (max-width: 768px) {
   .home-gradient {

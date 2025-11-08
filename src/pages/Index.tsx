@@ -9,11 +9,11 @@ export default function Index() {
     <div className="home-gradient" style={{ minHeight: '200vh' }}>
       <Navbar />
       <div className="container mx-auto px-4">
-        {/* Center button horizontally with fixed pixel positioning from top */}
-        <div className="flex justify-center items-center" style={{ paddingTop: '75vh' }}>
+        {/* Center button with responsive positioning */}
+        <div className="flex justify-center items-center button-container">
           <Button
             onClick={() => navigate("/login")}
-            className="bg-cyan-400 hover:bg-cyan-500 text-white border-2 border-cyan-400 hover:border-cyan-500 transition-all duration-300 px-10 py-6 text-lg font-semibold rounded-full shadow-2xl hover:shadow-cyan-500/50 hover:scale-105"
+            className="bg-cyan-400 hover:bg-cyan-500 text-white border-2 border-cyan-400 hover:border-cyan-500 transition-all duration-300 ticket-button font-semibold rounded-full shadow-2xl hover:shadow-cyan-500/50 hover:scale-105"
             size="lg"
           >
             View Your Ticket
