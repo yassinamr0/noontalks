@@ -68,7 +68,7 @@ export default function Ticket() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
-          <div className="bg-purple-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-purple-500/30">
+          <div className="bg-purple-900/20 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-purple-400/40">
             <div className="p-6">
               <div className="text-center mb-6">
                 <img
@@ -96,7 +96,7 @@ export default function Ticket() {
                   >
                     <QRCode
                       value={user.email}
-                      size={186}
+                      size={279}
                       level="H"
                       includeMargin={false}
                       className="mx-auto"

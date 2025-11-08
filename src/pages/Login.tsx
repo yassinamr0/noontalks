@@ -31,7 +31,7 @@ export default function Login() {
     <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto bg-purple-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-purple-500/30">
+        <div className="max-w-md mx-auto bg-purple-900/20 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-purple-400/40">
           <div className="text-center mb-6">
             <img 
               src="/logo-removebg-preview.png" 
