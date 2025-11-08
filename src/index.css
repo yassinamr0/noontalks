@@ -154,15 +154,124 @@ html, body {
   font-size: 1.5rem;
 }
 
+/* Countdown styles */
+.countdown-container {
+  margin-top: 4rem;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.countdown-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.countdown-item {
+  background: rgba(58, 31, 73, 0.6);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(34, 211, 238, 0.3);
+  border-radius: 1rem;
+  padding: 2rem 1rem;
+  transition: all 0.3s ease;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.countdown-item:hover {
+  transform: translateY(-10px);
+  border-color: rgba(34, 211, 238, 0.8);
+  box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+}
+
+.countdown-number {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #22d3ee;
+  text-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
+  animation: numberFlip 1s ease-in-out;
+}
+
+.countdown-label {
+  font-size: 1rem;
+  color: #fff;
+  margin-top: 0.5rem;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+  }
+  to {
+    text-shadow: 0 0 30px rgba(34, 211, 238, 0.8), 0 0 40px rgba(34, 211, 238, 0.6);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes numberFlip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .countdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .countdown-number {
+    font-size: 2.5rem;
+  }
+  
+  .countdown-title {
+    font-size: 1.5rem;
+  }
+  
+  .countdown-item {
+    padding: 1.5rem 0.5rem;
+  }
+}
+
 /* Desktop responsive */
 @media (min-width: 769px) {
   .button-container {
-    padding-top: 85vh; /* Desktop: 85vh (10% down from 75vh) */
+    padding-top: 90vh; /* Desktop: 90vh (5% more down) */
   }
   
   .ticket-button {
     padding: 2.25rem 4rem; /* Desktop: 3x larger */
     font-size: 1.5rem;
+  }
+  
+  .home-gradient {
+    padding-top: 0; /* Remove padding on desktop so navbar doesn't affect background */
   }
 }
 

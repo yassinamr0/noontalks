@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import Countdown from "@/components/Countdown";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -19,6 +20,9 @@ export default function Index() {
             View Your Ticket
           </Button>
         </div>
+        
+        {/* Countdown section */}
+        <Countdown />
       </div>
     </div>
   );
