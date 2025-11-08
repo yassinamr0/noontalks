@@ -118,38 +118,44 @@
 
 .animated-gradient {
   background-image: url('/season2-bg2.png');
-  background-size: 100% auto;
-  background-position: top center;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
 }
 
 .home-gradient {
   background-image: url('/season2-bg.png');
-  background-size: 100% auto;
-  background-position: top center;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
 }
 
 /* Prevent white spaces on zoom */
-body {
+html, body {
   overflow-x: hidden;
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Mobile responsive background scaling */
 @media (max-width: 768px) {
   .home-gradient {
-    background-size: 100% auto;
-    background-position: top center;
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
   }
   
   .animated-gradient {
-    background-size: 100% auto;
-    background-position: top center;
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
   }
 }
 
