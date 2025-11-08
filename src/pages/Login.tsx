@@ -31,15 +31,15 @@ export default function Login() {
     <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-6">
+        <div className="max-w-md mx-auto bg-purple-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-purple-500/30">
           <div className="text-center mb-6">
             <img 
               src="/logo-removebg-preview.png" 
               alt="Noon Talks Logo" 
               className="mx-auto h-16 w-auto mb-4"
             />
-            <h2 className="text-2xl font-bold text-[#542c6a]">Login</h2>
-            <p className="text-gray-600 mt-2">Enter your email to view your ticket</p>
+            <h2 className="text-2xl font-bold text-white">Login</h2>
+            <p className="text-purple-200 mt-2">Enter your email to view your ticket</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

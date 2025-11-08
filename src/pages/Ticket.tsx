@@ -68,7 +68,7 @@ export default function Ticket() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-purple-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-purple-500/30">
             <div className="p-6">
               <div className="text-center mb-6">
                 <img
@@ -76,7 +76,7 @@ export default function Ticket() {
                   alt="Noon Talks Logo"
                   className="mx-auto h-16 w-auto mb-4"
                 />
-                <h2 className="text-2xl font-bold text-[#542c6a]">Your Ticket</h2>
+                <h2 className="text-2xl font-bold text-white">Your Ticket</h2>
               </div>
 
               <div className="space-y-4">
@@ -107,18 +107,18 @@ export default function Ticket() {
                 </div>
 
                 <div className="space-y-2 text-center mt-6">
-                  <p className="text-lg font-semibold text-[#542c6a]">
+                  <p className="text-lg font-semibold text-white">
                     {user.name || 'Guest'}
                   </p>
-                  <p className="text-gray-600">{user.email}</p>
+                  <p className="text-purple-200">{user.email}</p>
                   {user.phone && (
-                    <p className="text-gray-600">{user.phone}</p>
+                    <p className="text-purple-200">{user.phone}</p>
                   )}
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-purple-300 mt-2">
                     Entries: {user.entries}
                   </p>
                   {user.lastEntry && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-purple-300">
                       Last Entry: {new Date(user.lastEntry).toLocaleString()}
                     </p>
                   )}
