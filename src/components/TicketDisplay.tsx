@@ -27,7 +27,7 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
           <div className="bg-white p-4 rounded-lg shadow-lg">
             <QRCodeSVG
               value={code}
-              size={200}
+              size={230}
               level="H"
               includeMargin={true}
               className="mx-auto"

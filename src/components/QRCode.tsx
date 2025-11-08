@@ -9,7 +9,7 @@ export default function QRCode({ value }: QRCodeProps) {
     <div className="flex justify-center items-center">
       <QRCodeSVG
         value={value}
-        size={200}
+        size={230}
         level="H"
         includeMargin={true}
       />

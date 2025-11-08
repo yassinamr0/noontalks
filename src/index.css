@@ -117,7 +117,7 @@
 }
 
 .animated-gradient {
-  background-image: url('/season2-bg.png');
+  background-image: url('/season2-bg2.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -126,10 +126,9 @@
 
 .home-gradient {
   background-image: url('/season2-bg.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-size: auto;
+  background-position: top center;
+  background-repeat: repeat-y;
 }
 
 @layer base {
