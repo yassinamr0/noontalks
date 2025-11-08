@@ -161,6 +161,13 @@ html, body {
   text-align: center;
 }
 
+/* Desktop countdown positioning - move below button */
+@media (min-width: 769px) {
+  .countdown-container {
+    margin-top: 6rem;
+  }
+}
+
 .countdown-title {
   font-size: 2.5rem;
   font-weight: bold;
@@ -262,7 +269,7 @@ html, body {
 /* Desktop responsive */
 @media (min-width: 769px) {
   .button-container {
-    padding-top: 90vh; /* Desktop: 90vh (5% more down) */
+    padding-top: 120vh; /* Desktop: Move button way down to countdown position */
   }
   
   .ticket-button {
