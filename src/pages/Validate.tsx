@@ -76,7 +76,7 @@ const Validate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen animated-gradient">
       <Navbar />
       <div className="container mx-auto px-4 py-6 md:py-12">
         <div className="max-w-2xl mx-auto">
