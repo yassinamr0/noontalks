@@ -288,12 +288,14 @@ html, body {
     background-size: cover;
     background-position: center;
     background-attachment: scroll;
+    padding-top: 64px; /* Add padding equal to navbar height on mobile */
   }
   
   .animated-gradient {
     background-size: cover;
     background-position: center;
     background-attachment: scroll;
+    padding-top: 64px; /* Add padding equal to navbar height on mobile */
   }
 }
 
