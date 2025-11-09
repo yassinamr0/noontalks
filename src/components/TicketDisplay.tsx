@@ -14,8 +14,13 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
     );
   }
 
-  const isMobile = window.innerWidth < 768;
-  const qrSize = isMobile ? 166 : 195;
+  const getQRSize = () => {
+    const width = window.innerWidth;
+    if (width < 375) return 140; // Small phones
+    if (width < 480) return 155; // Medium phones
+    if (width < 768) return 166; // Large phones/small tablets
+    return 195; // Tablets and desktop
+  };
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
@@ -30,7 +35,7 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
           <div className="bg-white p-4 rounded-lg shadow-lg">
             <QRCodeSVG
               value={code}
-              size={qrSize}
+              size={getQRSize()}
               level="H"
               includeMargin={true}
               className="mx-auto"
