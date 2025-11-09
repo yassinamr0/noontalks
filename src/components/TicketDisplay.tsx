@@ -24,14 +24,16 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
             <p className="text-lg sm:text-xl font-semibold">{name}</p>
           </div>
           
-          <div className="bg-white p-2 sm:p-4 rounded-lg shadow-lg max-w-[140px] sm:max-w-[180px] md:max-w-[220px]">
-            <QRCodeSVG
-              value={code}
-              size={140}
-              level="H"
-              includeMargin={true}
-              className="w-full h-auto"
-            />
+          <div className="bg-white p-2 sm:p-4 rounded-lg shadow-lg">
+            <div style={{ width: '120px', height: '120px' }} className="mx-auto sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px]">
+              <QRCodeSVG
+                value={code}
+                size={120}
+                level="H"
+                includeMargin={true}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
             <div className="text-center mt-1 sm:mt-2 font-mono text-[10px] sm:text-xs text-gray-600 break-all">
               {code}
             </div>
