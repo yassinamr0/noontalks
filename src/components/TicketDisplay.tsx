@@ -15,26 +15,24 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
   }
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
+    <div className="relative w-full max-w-2xl mx-auto px-4">
       <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-4 sm:p-8 rounded-lg shadow-xl">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
           <div className="text-white text-center md:text-left">
             <h2 className="text-2xl sm:text-3xl font-bold mb-2">Noon Talks</h2>
             <p className="text-base sm:text-lg opacity-90 mb-2">Ticket for:</p>
             <p className="text-lg sm:text-xl font-semibold">{name}</p>
           </div>
           
-          <div className="bg-white p-3 rounded-lg shadow-lg">
-            <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 mx-auto">
-              <QRCodeSVG
-                value={code}
-                size={96}
-                level="H"
-                includeMargin={true}
-                className="w-full h-full"
-              />
-            </div>
-            <div className="text-center mt-2 font-mono text-xs text-gray-600 break-all px-1">
+          <div className="bg-white p-2 sm:p-4 rounded-lg shadow-lg max-w-[140px] sm:max-w-[180px] md:max-w-[220px]">
+            <QRCodeSVG
+              value={code}
+              size={140}
+              level="H"
+              includeMargin={true}
+              className="w-full h-auto"
+            />
+            <div className="text-center mt-1 sm:mt-2 font-mono text-[10px] sm:text-xs text-gray-600 break-all">
               {code}
             </div>
           </div>
