@@ -6,6 +6,15 @@ interface TicketDisplayProps {
   name: string;
 }
 
+const getQRSize = () => {
+  const width = window.innerWidth;
+  if (width < 360) return 70; // Very small phones
+  if (width < 430) return 80; // Small phones
+  if (width < 480) return 90; // Medium phones
+  if (width < 768) return 105; // Large phones/small tablets
+  return 195; // Tablets and desktop
+};
+
 const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
   if (!code || !name) {
     return (
@@ -15,18 +24,12 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
     );
   }
 
-  const getQRSize = () => {
-    const width = window.innerWidth;
-    if (width < 360) return 85; // Very small phones
-    if (width < 430) return 95; // Small phones
-    if (width < 480) return 110; // Medium phones
-    if (width < 768) return 125; // Large phones/small tablets
-    return 195; // Tablets and desktop
-  };
-
   const [qrSize, setQrSize] = useState(getQRSize());
 
   useEffect(() => {
+    // Update size on mount to ensure correct initial size
+    setQrSize(getQRSize());
+    
     const handleResize = () => {
       setQrSize(getQRSize());
     };
