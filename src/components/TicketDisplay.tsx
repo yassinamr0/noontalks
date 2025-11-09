@@ -1,17 +1,9 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { useState, useEffect } from 'react';
 
 interface TicketDisplayProps {
   code: string;
   name: string;
 }
-
-const getQRSize = () => {
-  const width = window.innerWidth;
-  if (width < 640) return 120; // Phones
-  if (width < 768) return 150; // Small tablets
-  return 180; // Tablets and desktop
-};
 
 const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
   if (!code || !name) {
@@ -21,20 +13,6 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
       </div>
     );
   }
-
-  const [qrSize, setQrSize] = useState(getQRSize());
-
-  useEffect(() => {
-    // Update size on mount to ensure correct initial size
-    setQrSize(getQRSize());
-    
-    const handleResize = () => {
-      setQrSize(getQRSize());
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
@@ -47,13 +25,15 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
           </div>
           
           <div className="bg-white p-4 rounded-lg shadow-lg">
-            <QRCodeSVG
-              value={code}
-              size={qrSize}
-              level="H"
-              includeMargin={true}
-              className="mx-auto"
-            />
+            <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 mx-auto">
+              <QRCodeSVG
+                value={code}
+                size={80}
+                level="H"
+                includeMargin={true}
+                className="w-full h-full"
+              />
+            </div>
             <div className="text-center mt-2 font-mono text-sm text-gray-600">
               {code}
             </div>
