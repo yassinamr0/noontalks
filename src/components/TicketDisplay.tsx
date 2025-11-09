@@ -8,11 +8,9 @@ interface TicketDisplayProps {
 
 const getQRSize = () => {
   const width = window.innerWidth;
-  if (width < 360) return 70; // Very small phones
-  if (width < 430) return 80; // Small phones
-  if (width < 480) return 90; // Medium phones
-  if (width < 768) return 105; // Large phones/small tablets
-  return 195; // Tablets and desktop
+  if (width < 640) return 120; // Phones
+  if (width < 768) return 150; // Small tablets
+  return 180; // Tablets and desktop
 };
 
 const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
