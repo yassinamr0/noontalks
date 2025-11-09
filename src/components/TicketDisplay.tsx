@@ -16,31 +16,31 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-8 rounded-lg shadow-xl">
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-4 sm:p-8 rounded-lg shadow-xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-white text-center md:text-left">
-            <h2 className="text-3xl font-bold mb-2">Noon Talks</h2>
-            <p className="text-lg opacity-90 mb-2">Ticket for:</p>
-            <p className="text-xl font-semibold">{name}</p>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">Noon Talks</h2>
+            <p className="text-base sm:text-lg opacity-90 mb-2">Ticket for:</p>
+            <p className="text-lg sm:text-xl font-semibold">{name}</p>
           </div>
           
-          <div className="bg-white p-3 sm:p-4 rounded-lg shadow-lg">
-            <div className="w-28 h-28 landscape:w-36 landscape:h-36 md:w-44 md:h-44 mx-auto">
+          <div className="bg-white p-3 rounded-lg shadow-lg">
+            <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 mx-auto">
               <QRCodeSVG
                 value={code}
-                size={112}
+                size={96}
                 level="H"
                 includeMargin={true}
                 className="w-full h-full"
               />
             </div>
-            <div className="text-center mt-2 font-mono text-xs sm:text-sm text-gray-600 break-all">
+            <div className="text-center mt-2 font-mono text-xs text-gray-600 break-all px-1">
               {code}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 text-white text-center text-sm opacity-75">
+        <div className="mt-4 sm:mt-6 text-white text-center text-xs sm:text-sm opacity-75">
           <p>Please show this QR code at the entrance</p>
           <p>Valid for one-time entry</p>
         </div>
