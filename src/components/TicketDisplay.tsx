@@ -24,17 +24,17 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
             <p className="text-xl font-semibold">{name}</p>
           </div>
           
-          <div className="bg-white p-4 rounded-lg shadow-lg">
-            <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 mx-auto">
+          <div className="bg-white p-3 sm:p-4 rounded-lg shadow-lg">
+            <div className="w-28 h-28 landscape:w-36 landscape:h-36 md:w-44 md:h-44 mx-auto">
               <QRCodeSVG
                 value={code}
-                size={80}
+                size={112}
                 level="H"
                 includeMargin={true}
                 className="w-full h-full"
               />
             </div>
-            <div className="text-center mt-2 font-mono text-sm text-gray-600">
+            <div className="text-center mt-2 font-mono text-xs sm:text-sm text-gray-600 break-all">
               {code}
             </div>
           </div>
