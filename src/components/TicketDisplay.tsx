@@ -1,4 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
+import { useState, useEffect } from 'react';
 
 interface TicketDisplayProps {
   code: string;
@@ -16,11 +17,22 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
 
   const getQRSize = () => {
     const width = window.innerWidth;
-    if (width < 375) return 140; // Small phones
-    if (width < 480) return 155; // Medium phones
-    if (width < 768) return 166; // Large phones/small tablets
+    if (width < 375) return 120; // Small phones
+    if (width < 480) return 140; // Medium phones
+    if (width < 768) return 155; // Large phones/small tablets
     return 195; // Tablets and desktop
   };
+
+  const [qrSize, setQrSize] = useState(getQRSize());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setQrSize(getQRSize());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="relative w-full max-w-2xl mx-auto">
@@ -35,7 +47,7 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
           <div className="bg-white p-4 rounded-lg shadow-lg">
             <QRCodeSVG
               value={code}
-              size={getQRSize()}
+              size={qrSize}
               level="H"
               includeMargin={true}
               className="mx-auto"
