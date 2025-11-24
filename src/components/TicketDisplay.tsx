@@ -1,19 +1,9 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { useState, useEffect } from 'react';
 
 interface TicketDisplayProps {
   code: string;
   name: string;
 }
-
-const getQRSize = () => {
-  const width = window.innerWidth;
-  if (width < 360) return 70; // Very small phones
-  if (width < 430) return 80; // Small phones
-  if (width < 480) return 90; // Medium phones
-  if (width < 768) return 105; // Large phones/small tablets
-  return 195; // Tablets and desktop
-};
 
 const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
   if (!code || !name) {
@@ -24,45 +14,33 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
     );
   }
 
-  const [qrSize, setQrSize] = useState(getQRSize());
-
-  useEffect(() => {
-    // Update size on mount to ensure correct initial size
-    setQrSize(getQRSize());
-    
-    const handleResize = () => {
-      setQrSize(getQRSize());
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-8 rounded-lg shadow-xl">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+    <div className="relative w-full max-w-2xl mx-auto px-4">
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-4 sm:p-8 rounded-lg shadow-xl">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
           <div className="text-white text-center md:text-left">
-            <h2 className="text-3xl font-bold mb-2">Noon Talks</h2>
-            <p className="text-lg opacity-90 mb-2">Ticket for:</p>
-            <p className="text-xl font-semibold">{name}</p>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">Noon Talks</h2>
+            <p className="text-base sm:text-lg opacity-90 mb-2">Ticket for:</p>
+            <p className="text-lg sm:text-xl font-semibold">{name}</p>
           </div>
           
-          <div className="bg-white p-4 rounded-lg shadow-lg">
-            <QRCodeSVG
-              value={code}
-              size={qrSize}
-              level="H"
-              includeMargin={true}
-              className="mx-auto"
-            />
-            <div className="text-center mt-2 font-mono text-sm text-gray-600">
+          <div className="bg-white p-2 sm:p-4 rounded-lg shadow-lg">
+            <div style={{ width: '120px', height: '120px' }} className="mx-auto sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px]">
+              <QRCodeSVG
+                value={code}
+                size={120}
+                level="H"
+                includeMargin={true}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+            <div className="text-center mt-1 sm:mt-2 font-mono text-[10px] sm:text-xs text-gray-600 break-all">
               {code}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 text-white text-center text-sm opacity-75">
+        <div className="mt-4 sm:mt-6 text-white text-center text-xs sm:text-sm opacity-75">
           <p>Please show this QR code at the entrance</p>
           <p>Valid for one-time entry</p>
         </div>
