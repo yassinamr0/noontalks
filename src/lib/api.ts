@@ -119,6 +119,18 @@ export const loginUser = async (email: string): Promise<User> => {
   }
 };
 
+export const deleteUser = async (userId: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(`/api/admin/users/${userId}`, 
+      fetchOptions('DELETE')
+    );
+    return handleResponse<{ success: boolean; message: string }>(response);
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+};
+
 export const scanTicket = async (email: string): Promise<ScanTicketFullResponse> => {
   try {
     const response = await fetch(`/api/admin/validate`, 

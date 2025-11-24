@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QRScanner from "@/components/QRScanner";
-import { addUser, getUsers } from '@/lib/api';
+import { addUser, getUsers, deleteUser } from '@/lib/api';
 import { sendWelcomeEmail } from '@/lib/email';
 import { toast } from 'sonner';
 import Navbar from "@/components/Navbar";
@@ -135,6 +135,25 @@ export default function Admin() {
     window.open(ticketUrl, '_blank');
   };
 
+  const handleDeleteUser = async (userId: string, email: string) => {
+    if (window.confirm(`Are you sure you want to delete the user with email: ${email}?`)) {
+      try {
+        await deleteUser(userId);
+        toast.success('User deleted successfully');
+        // Refresh the users list
+        const fetchedUsers = await getUsers();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        if (error instanceof Error) {
+          toast.error(error.message || 'Failed to delete user');
+        } else {
+          toast.error('Failed to delete user');
+        }
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen animated-gradient">
       <Navbar />
@@ -204,13 +223,23 @@ export default function Admin() {
                       <td className="p-2">{user.phone || '-'}</td>
                       <td className="p-2">{user.entries}</td>
                       <td className="p-2">
-                        <Button
-                          onClick={() => openTicket(user.email)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          View Ticket
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => openTicket(user.email)}
+                            variant="outline"
+                            size="sm"
+                            className="bg-blue-500 hover:bg-blue-600 text-white"
+                          >
+                            View Ticket
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteUser(user._id, user.email)}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
