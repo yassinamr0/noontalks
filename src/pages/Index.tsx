@@ -22,7 +22,7 @@ export default function Index() {
             </Button>
             
             <Button
-              onClick={() => window.open('#', '_blank')} // Add your ticket purchase link here
+              onClick={() => window.open('https://noon-talks.myshopify.com/products/noon-talks-ticket?variant=51632924590359', '_blank')}
               className="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border-2 border-cyan-400 transition-all duration-300 font-semibold rounded-full shadow-2xl hover:shadow-cyan-500/30 hover:scale-105 px-8 py-6 text-lg"
               size="lg"
               variant="outline"
