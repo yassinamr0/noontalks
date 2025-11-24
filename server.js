@@ -168,6 +168,38 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
   }
 });
 
+// Delete user endpoint
+app.delete('/api/admin/users/:userId', adminAuth, async (req, res) => {
+  try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
+    const { userId } = req.params;
+    
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+    
+    res.json({ 
+      success: true,
+      message: 'User deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while deleting user', 
+      error: error.message 
+    });
+  }
+});
+
 // Validate ticket endpoint
 app.post('/api/admin/validate', adminAuth, async (req, res) => {
   try {
