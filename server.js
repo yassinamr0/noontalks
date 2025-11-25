@@ -72,7 +72,15 @@ const ticketSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: String,
   ticketType: { type: String, enum: ['single', 'group'], required: true },
-  paymentMethod: { type: String, enum: ['telda', 'instapay'] },
+  paymentMethod: { 
+    type: String, 
+    enum: {
+      values: ['telda', 'instapay'],
+      message: 'Payment method must be either telda or instapay'
+    },
+    default: null,
+    sparse: true
+  },
   paymentProof: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   verifiedAt: Date,
@@ -359,14 +367,20 @@ app.post('/api/tickets/purchase', (req, res, next) => {
     const fileBase64 = req.file.buffer.toString('base64');
     const fileData = `data:${req.file.mimetype};base64,${fileBase64}`;
 
-    const ticket = new Ticket({
+    const ticketData = {
       name,
       email,
       phone,
       ticketType,
-      paymentMethod,
       paymentProof: fileData
-    });
+    };
+
+    // Only add paymentMethod if it's not empty
+    if (paymentMethod && paymentMethod.trim()) {
+      ticketData.paymentMethod = paymentMethod;
+    }
+
+    const ticket = new Ticket(ticketData);
 
     await ticket.save();
     console.log('Ticket saved successfully:', ticket._id);
