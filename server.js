@@ -335,7 +335,7 @@ app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res
     
     console.log('Validating fields:', { name, email, ticketType, paymentMethod });
 
-    if (!name || !email || !ticketType || !paymentMethod) {
+    if (!name || !email || !ticketType) {
       console.error('Missing required fields');
       try {
         fs.unlinkSync(req.file.path);
@@ -452,15 +452,15 @@ app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Handle React routing - must be after all API routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-// Error handling middleware
+// Error handling middleware - before catch-all route
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ message: 'Internal server error', error: err.message });
+});
+
+// Handle React routing - must be LAST after all API routes and error handling
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Export for Vercel
