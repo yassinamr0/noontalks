@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import nodemailer from 'nodemailer';
 
 // Load environment variables
 dotenv.config();
@@ -17,6 +18,40 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+
+// Email configuration
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+// Function to send welcome email
+const sendWelcomeEmail = async (email, name, qrCode) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Welcome to Noon Talks 2024 - Your Ticket is Verified!',
+      html: `
+        <h2>Welcome to Noon Talks 2024, ${name}!</h2>
+        <p>Your ticket has been verified and you're all set for the event.</p>
+        <p><strong>Your QR Code:</strong></p>
+        <p style="font-size: 24px; font-weight: bold; font-family: monospace;">${qrCode}</p>
+        <p>Please keep this QR code safe. You'll need to scan it at the event entrance.</p>
+        <p>We look forward to seeing you at Noon Talks 2024!</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Welcome email sent to:', email);
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    throw error;
+  }
+};
 
 // Basic middleware
 app.use(cors({
@@ -448,6 +483,14 @@ app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
     ticket.isVerified = true;
     ticket.verifiedAt = new Date();
     await ticket.save();
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(ticket.email, ticket.name, qrCode);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail the verification if email fails, but log it
+    }
 
     res.json({ 
       message: 'Ticket verified and user created',
