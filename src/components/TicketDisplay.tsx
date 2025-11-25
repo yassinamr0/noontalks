@@ -1,4 +1,4 @@
-import { QRCodeSVG } from 'qrcode.react';
+import QRCode from 'qrcode.react';
 
 interface TicketDisplayProps {
   code: string;
@@ -26,7 +26,7 @@ const TicketDisplay = ({ code, name }: TicketDisplayProps) => {
           
           <div className="bg-white p-2 sm:p-4 rounded-lg shadow-lg">
             <div style={{ width: '120px', height: '120px' }} className="mx-auto sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px]">
-              <QRCodeSVG
+              <QRCode
                 value={code}
                 size={120}
                 level="H"

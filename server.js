@@ -5,6 +5,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
@@ -55,10 +58,54 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: String,
   qrCode: String,
-  attended: { type: Boolean, default: false }
+  attended: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model('User', userSchema);
+
+// Ticket schema for unverified purchases
+const ticketSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: String,
+  ticketType: { type: String, enum: ['single', 'group'], required: true },
+  paymentMethod: { type: String, enum: ['telda', 'instapay'], required: true },
+  paymentProof: { type: String, required: true },
+  isVerified: { type: Boolean, default: false },
+  verifiedAt: Date,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Ticket = mongoose.model('Ticket', ticketSchema);
+
+// Configure multer for file uploads
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and PDF files are allowed'));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 // Admin token middleware
 const adminAuth = (req, res, next) => {
@@ -263,6 +310,117 @@ app.post('/api/user/login', async (req, res) => {
   } catch (error) {
     console.error('Error logging in:', error);
     res.status(500).json({ message: 'Server error during user login', error: error.message });
+  }
+});
+
+// Ticket purchase endpoint
+app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res) => {
+  try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'Payment proof is required' });
+    }
+
+    const { name, email, phone, ticketType, paymentMethod } = req.body;
+    
+    if (!name || !email || !ticketType || !paymentMethod) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Check if email already exists in either users or tickets
+    const existingUser = await User.findOne({ email });
+    const existingTicket = await Ticket.findOne({ email });
+    
+    if (existingUser || existingTicket) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    const ticket = new Ticket({
+      name,
+      email,
+      phone,
+      ticketType,
+      paymentMethod,
+      paymentProof: `/uploads/${req.file.filename}`
+    });
+
+    await ticket.save();
+
+    res.status(201).json({ 
+      message: 'Ticket purchase submitted for verification',
+      ticket
+    });
+  } catch (error) {
+    console.error('Error processing ticket purchase:', error);
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
+  }
+});
+
+// Get unverified tickets endpoint
+app.get('/api/admin/tickets', adminAuth, async (req, res) => {
+  try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
+    const tickets = await Ticket.find({ isVerified: false }).sort({ createdAt: -1 });
+    res.json(tickets);
+  } catch (error) {
+    console.error('Error fetching tickets:', error);
+    res.status(500).json({ message: 'Error fetching tickets', error: error.message });
+  }
+});
+
+// Verify ticket endpoint
+app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
+  try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (ticket.isVerified) {
+      return res.status(400).json({ message: 'Ticket already verified' });
+    }
+
+    // Generate QR code for the user
+    const qrCode = Math.random().toString(36).substring(7);
+
+    // Create user from ticket
+    const user = new User({
+      name: ticket.name,
+      email: ticket.email,
+      phone: ticket.phone,
+      qrCode
+    });
+
+    await user.save();
+
+    // Mark ticket as verified
+    ticket.isVerified = true;
+    ticket.verifiedAt = new Date();
+    await ticket.save();
+
+    res.json({ 
+      message: 'Ticket verified and user created',
+      user,
+      ticket
+    });
+  } catch (error) {
+    console.error('Error verifying ticket:', error);
+    res.status(500).json({ message: 'Error verifying ticket', error: error.message });
   }
 });
 

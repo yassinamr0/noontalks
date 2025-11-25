@@ -2,9 +2,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Countdown from "@/components/Countdown";
+import { useState } from 'react';
+import TicketPurchaseFlow from "@/components/TicketPurchaseFlow";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function Index() {
   const navigate = useNavigate();
+  const [showPurchaseFlow, setShowPurchaseFlow] = useState(false);
 
   return (
     <>
@@ -16,16 +20,13 @@ export default function Index() {
             <Button
               onClick={() => navigate("/login")}
               className="bg-cyan-400 hover:bg-cyan-500 text-white border-2 border-cyan-400 hover:border-cyan-500 transition-all duration-300 ticket-button font-semibold rounded-full shadow-2xl hover:shadow-cyan-500/50 hover:scale-105 px-8 py-6 text-lg"
-              size="lg"
             >
               View Your Ticket
             </Button>
             
             <Button
-              onClick={() => window.open('https://noon-talks.myshopify.com/products/noon-talks-ticket?variant=51632924590359', '_blank')}
+              onClick={() => setShowPurchaseFlow(true)}
               className="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border-2 border-cyan-400 transition-all duration-300 font-semibold rounded-full shadow-2xl hover:shadow-cyan-500/30 hover:scale-105 px-8 py-6 text-lg"
-              size="lg"
-              variant="outline"
             >
               Buy Ticket
             </Button>
@@ -35,6 +36,12 @@ export default function Index() {
           <Countdown />
         </div>
       </div>
+
+      <Dialog open={showPurchaseFlow} onOpenChange={setShowPurchaseFlow}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <TicketPurchaseFlow onComplete={() => setShowPurchaseFlow(false)} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

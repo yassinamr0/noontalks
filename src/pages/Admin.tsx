@@ -7,6 +7,7 @@ import { addUser, getUsers, deleteUser } from '@/lib/api';
 import { sendWelcomeEmail } from '@/lib/email';
 import { toast } from 'sonner';
 import Navbar from "@/components/Navbar";
+import TicketsTab from "@/components/admin/TicketsTab";
 
 interface User {
   _id: string;
@@ -25,6 +26,7 @@ export default function Admin() {
     phone: ""
   });
   const [users, setUsers] = useState<User[]>([]);
+  const [activeTab, setActiveTab] = useState<'users' | 'tickets'>('users');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -163,94 +165,127 @@ export default function Admin() {
             <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
             <Button 
               onClick={handleLogout}
-              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               Logout
             </Button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-black">Add New User</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input
-                  type="text"
-                  value={newUser.name}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Name (optional)"
-                />
-                <Input
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Email (required)"
-                  required
-                />
-                <Input
-                  type="tel"
-                  value={newUser.phone}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Phone (optional)"
-                />
-              </div>
-              <Button 
-                onClick={handleAddUser}
-                className="bg-black hover:bg-gray-700 w-full"
+          {/* Tabs */}
+          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+            <div className="flex border-b">
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex-1 py-4 px-6 font-semibold transition-colors ${
+                  activeTab === 'users'
+                    ? 'bg-black text-white'
+                    : 'bg-gray-100 text-black hover:bg-gray-200'
+                }`}
               >
-                Add User
-              </Button>
+                Registered Users
+              </button>
+              <button
+                onClick={() => setActiveTab('tickets')}
+                className={`flex-1 py-4 px-6 font-semibold transition-colors ${
+                  activeTab === 'tickets'
+                    ? 'bg-black text-white'
+                    : 'bg-gray-100 text-black hover:bg-gray-200'
+                }`}
+              >
+                Unverified Tickets
+              </button>
             </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-black">Registered Users</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Name</th>
-                    <th className="text-left p-2">Email</th>
-                    <th className="text-left p-2">Phone</th>
-                    <th className="text-left p-2">Entries</th>
-                    <th className="text-left p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, index) => (
-                    <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{user.name || '-'}</td>
-                      <td className="p-2">{user.email}</td>
-                      <td className="p-2">{user.phone || '-'}</td>
-                      <td className="p-2">{user.entries}</td>
-                      <td className="p-2">
-                        <div className="flex space-x-2">
-                          <Button
-                            onClick={() => openTicket(user.email)}
-                            variant="outline"
-                            size="sm"
-                            className="bg-blue-500 hover:bg-blue-600 text-white"
-                          >
-                            View Ticket
-                          </Button>
-                          <Button
-                            onClick={() => handleDeleteUser(user._id, user.email)}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="p-6">
+              {activeTab === 'users' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold mb-4 text-black">Add New User</h2>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Input
+                          type="text"
+                          value={newUser.name}
+                          onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Name (optional)"
+                        />
+                        <Input
+                          type="email"
+                          value={newUser.email}
+                          onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="Email (required)"
+                          required
+                        />
+                        <Input
+                          type="tel"
+                          value={newUser.phone}
+                          onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="Phone (optional)"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleAddUser}
+                        className="bg-black hover:bg-gray-700 w-full"
+                      >
+                        Add User
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold mb-4 text-black">Registered Users</h2>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-2">Name</th>
+                            <th className="text-left p-2">Email</th>
+                            <th className="text-left p-2">Phone</th>
+                            <th className="text-left p-2">Entries</th>
+                            <th className="text-left p-2">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((user, index) => (
+                            <tr key={index} className="border-b hover:bg-gray-50">
+                              <td className="p-2">{user.name || '-'}</td>
+                              <td className="p-2">{user.email}</td>
+                              <td className="p-2">{user.phone || '-'}</td>
+                              <td className="p-2">{user.entries}</td>
+                              <td className="p-2">
+                                <div className="flex space-x-2">
+                                  <Button
+                                    onClick={() => openTicket(user.email)}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs"
+                                  >
+                                    View Ticket
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleDeleteUser(user._id, user.email)}
+                                    className="bg-red-600 hover:bg-red-700 text-white text-xs"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold mb-4 text-black">Scan QR Code</h2>
+                    <QRScanner />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'tickets' && (
+                <TicketsTab />
+              )}
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-xl p-6">
-            <h2 className="text-xl font-semibold mb-4 text-black">Scan QR Code</h2>
-            <QRScanner />
           </div>
         </div>
       </div>
