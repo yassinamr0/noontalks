@@ -125,7 +125,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               >
                 <div className="flex flex-col items-center">
                   <span>Single Ticket</span>
-                  <span className="text-2xl font-bold mt-1">300 L.E</span>
+                  <span className="text-2xl font-bold mt-1">EARLY BIRD 250 L.E</span>
                 </div>
               </Button>
               <Button
@@ -148,7 +148,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               {ticketType === 'single' ? 'Single Ticket' : 'Group Ticket'}
             </h2>
             <p className="text-purple-300 text-lg font-semibold">
-              {ticketType === 'single' ? '300 L.E' : '1000 L.E'}
+              {ticketType === 'single' ? 'EARLY BIRD 250 L.E' : '1000 L.E'}
             </p>
           </div>
 
