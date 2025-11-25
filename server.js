@@ -315,7 +315,15 @@ app.post('/api/user/login', async (req, res) => {
 });
 
 // Ticket purchase endpoint
-app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res) => {
+app.post('/api/tickets/purchase', (req, res, next) => {
+  upload.single('paymentProof')(req, res, (err) => {
+    if (err) {
+      console.error('Multer error:', err);
+      return res.status(400).json({ message: 'File upload error', error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     console.log('Ticket purchase request received');
     console.log('File:', req.file);
@@ -371,7 +379,7 @@ app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res
     await ticket.save();
     console.log('Ticket saved successfully:', ticket._id);
 
-    res.status(201).json({ 
+    return res.status(201).json({ 
       message: 'Ticket purchase submitted for verification',
       ticket
     });
@@ -384,7 +392,7 @@ app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res
         console.error('Error deleting file:', e);
       }
     }
-    res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
+    return res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
   }
 });
 

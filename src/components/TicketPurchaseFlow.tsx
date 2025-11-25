@@ -130,7 +130,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
           {/* Payment Method Selection */}
           <div className="space-y-3">
-            <Label className="text-white font-semibold">Select Payment Method (Optional)</Label>
+            <Label className="text-white font-semibold">Select Payment Method</Label>
             <div className="flex gap-4">
               <button
                 type="button"
