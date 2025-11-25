@@ -95,13 +95,13 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
-      <div className="bg-purple-600/30 backdrop-blur-md border border-purple-400/20 rounded-2xl p-8 shadow-2xl">
+      <div className="bg-gradient-to-br from-purple-900/80 to-purple-800/80 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-8 shadow-2xl">
         {step === 'select-ticket' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-cyan-400 text-center">Select Ticket Type</h2>
+            <h2 className="text-3xl font-bold text-white text-center">Select Ticket Type</h2>
             <div className="grid grid-cols-2 gap-4">
               <Button
-                className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
+                className="py-8 text-lg font-semibold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white transition-all duration-300 rounded-lg border border-purple-400/50"
                 onClick={() => handleTicketSelect('single')}
               >
                 Single Ticket
@@ -109,7 +109,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
                 300 L.E
               </Button>
               <Button
-                className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
+                className="py-8 text-lg font-semibold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white transition-all duration-300 rounded-lg border border-purple-400/50"
                 onClick={() => handleTicketSelect('group')}
               >
                 Group Ticket
@@ -123,22 +123,22 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
         {step === 'user-info' && (
           <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-cyan-400 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-6">
               {ticketType === 'single' ? 'Single Ticket (300 L.E)' : 'Group Ticket (1000 L.E)'}
             </h2>
           </div>
 
           {/* Payment Method Selection */}
           <div className="space-y-3">
-            <Label className="text-cyan-400 font-semibold">Select Payment Method *</Label>
+            <Label className="text-white font-semibold">Select Payment Method (Optional)</Label>
             <div className="flex gap-4">
               <button
                 type="button"
                 onClick={() => handlePaymentSelect('telda')}
                 className={`flex-1 p-4 rounded-lg transition-all duration-300 border-2 ${
                   paymentMethod === 'telda'
-                    ? 'border-cyan-400 bg-cyan-400/10'
-                    : 'border-gray-600 hover:border-cyan-400'
+                    ? 'border-purple-400 bg-purple-500/20'
+                    : 'border-purple-500/30 hover:border-purple-400'
                 }`}
               >
                 <img 
@@ -152,8 +152,8 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
                 onClick={() => handlePaymentSelect('instapay')}
                 className={`flex-1 p-4 rounded-lg transition-all duration-300 border-2 ${
                   paymentMethod === 'instapay'
-                    ? 'border-cyan-400 bg-cyan-400/10'
-                    : 'border-gray-600 hover:border-cyan-400'
+                    ? 'border-purple-400 bg-purple-500/20'
+                    : 'border-purple-500/30 hover:border-purple-400'
                 }`}
               >
                 <img 
@@ -168,19 +168,19 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
           {/* User Information */}
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name" className="text-cyan-400 font-semibold">Full Name *</Label>
+              <Label htmlFor="name" className="text-white font-semibold">Full Name *</Label>
               <Input
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 required
-                className="mt-2 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                className="mt-2 bg-purple-950/50 border-purple-500/30 text-white placeholder-purple-300"
                 placeholder="Enter your full name"
               />
             </div>
             <div>
-              <Label htmlFor="email" className="text-cyan-400 font-semibold">Email *</Label>
+              <Label htmlFor="email" className="text-white font-semibold">Email *</Label>
               <Input
                 id="email"
                 name="email"
@@ -188,19 +188,19 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="mt-2 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                className="mt-2 bg-purple-950/50 border-purple-500/30 text-white placeholder-purple-300"
                 placeholder="Enter your email"
               />
             </div>
             <div>
-              <Label htmlFor="phone" className="text-cyan-400 font-semibold">Phone Number</Label>
+              <Label htmlFor="phone" className="text-white font-semibold">Phone Number</Label>
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="mt-2 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                className="mt-2 bg-purple-950/50 border-purple-500/30 text-white placeholder-purple-300"
                 placeholder="Enter your phone number (optional)"
               />
             </div>
@@ -208,7 +208,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
           {/* Payment Proof Upload */}
           <div>
-            <Label htmlFor="paymentProof" className="text-cyan-400 font-semibold">Proof of Payment *</Label>
+            <Label htmlFor="paymentProof" className="text-white font-semibold">Proof of Payment *</Label>
             <Input
               id="paymentProof"
               name="paymentProof"
@@ -216,9 +216,9 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               accept="image/*,.pdf"
               onChange={handleInputChange}
               required
-              className="mt-2 bg-gray-900 border-gray-700 text-white file:bg-cyan-400 file:text-black file:font-semibold file:border-0 file:rounded file:cursor-pointer"
+              className="mt-2 bg-purple-950/50 border-purple-500/30 text-white file:bg-purple-600 file:text-white file:font-semibold file:border-0 file:rounded file:cursor-pointer"
             />
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-purple-300 mt-2">
               Please upload a screenshot or photo of your payment confirmation
             </p>
           </div>
@@ -229,14 +229,14 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               type="button"
               onClick={() => setStep('select-ticket')}
               disabled={isSubmitting}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2"
+              className="flex-1 bg-purple-700 hover:bg-purple-600 text-white font-semibold py-2 border border-purple-500/50"
             >
               Back
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting}
-              className="flex-1 bg-cyan-400 hover:bg-cyan-500 text-black font-semibold py-2 transition-all duration-300"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold py-2 transition-all duration-300 border border-purple-400/50"
             >
               {isSubmitting ? 'Submitting...' : 'Submit'}
             </Button>
