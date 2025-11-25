@@ -37,7 +37,7 @@ export default function Index() {
           <Countdown />
 
           {/* Contact Us Section */}
-          <div className="mt-20 py-12 px-6">
+          <div className="mt-8 py-12 px-6">
             <h2 className="text-4xl md:text-5xl font-black text-white text-center mb-12 tracking-tight">
               Get In <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Touch</span>
             </h2>

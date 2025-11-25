@@ -415,23 +415,24 @@ app.post('/api/tickets/purchase', (req, res, next) => {
       ticketData.paymentMethod = paymentMethod;
     }
 
-    const ticket = new Ticket(ticketData);
-
-    await ticket.save();
-    console.log('Ticket saved successfully:', ticket._id);
-
-    return res.status(201).json({ 
-      message: 'Ticket purchase submitted for verification',
-      ticket: {
-        _id: ticket._id,
-        name: ticket.name,
-        email: ticket.email,
-        message: 'Ticket submitted for verification'
+    try {
+      const ticket = await Ticket.create(ticketData);
+      res.json({ message: 'Ticket purchase submitted for verification', ticket });
+    } catch (dbError) {
+      // Handle duplicate key error from verified tickets
+      if (dbError.code === 11000 && dbError.keyPattern?.email) {
+        console.error('Email has verified ticket, deleting old verified ticket and creating new one');
+        // Delete the old verified ticket and create new one
+        await Ticket.deleteOne({ email, isVerified: true });
+        const ticket = await Ticket.create(ticketData);
+        res.json({ message: 'Ticket purchase submitted for verification', ticket });
+      } else {
+        throw dbError;
       }
-    });
+    }
   } catch (error) {
     console.error('Error processing ticket purchase:', error);
-    return res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
+    res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
   }
 });
 
