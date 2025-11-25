@@ -318,18 +318,31 @@ app.post('/api/user/login', async (req, res) => {
 // Ticket purchase endpoint
 app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res) => {
   try {
+    console.log('Ticket purchase request received');
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+
     if (!isConnectedToMongo) {
+      console.error('MongoDB not connected');
       return res.status(503).json({ message: 'Database connection not available' });
     }
 
     if (!req.file) {
+      console.error('No file uploaded');
       return res.status(400).json({ message: 'Payment proof is required' });
     }
 
     const { name, email, phone, ticketType, paymentMethod } = req.body;
     
+    console.log('Validating fields:', { name, email, ticketType, paymentMethod });
+
     if (!name || !email || !ticketType || !paymentMethod) {
-      fs.unlinkSync(req.file.path);
+      console.error('Missing required fields');
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Error deleting file:', e);
+      }
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -338,7 +351,12 @@ app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res
     const existingTicket = await Ticket.findOne({ email });
     
     if (existingUser || existingTicket) {
-      fs.unlinkSync(req.file.path);
+      console.error('Email already registered');
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Error deleting file:', e);
+      }
       return res.status(400).json({ message: 'Email already registered' });
     }
 
@@ -352,6 +370,7 @@ app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res
     });
 
     await ticket.save();
+    console.log('Ticket saved successfully:', ticket._id);
 
     res.status(201).json({ 
       message: 'Ticket purchase submitted for verification',
@@ -360,7 +379,11 @@ app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res
   } catch (error) {
     console.error('Error processing ticket purchase:', error);
     if (req.file) {
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Error deleting file:', e);
+      }
     }
     res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
   }

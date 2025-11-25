@@ -47,8 +47,16 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.paymentProof || !paymentMethod) {
-      toast.error('Please fill in all required fields');
+    if (!formData.name) {
+      toast.error('Please enter your name');
+      return;
+    }
+    if (!formData.email) {
+      toast.error('Please enter your email');
+      return;
+    }
+    if (!formData.paymentProof) {
+      toast.error('Please upload proof of payment');
       return;
     }
 
@@ -87,32 +95,33 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
-      {step === 'select-ticket' && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-cyan-400 text-center">Select Ticket Type</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
-              onClick={() => handleTicketSelect('single')}
-            >
-              Single Ticket
-              <br />
-              300 L.E
-            </Button>
-            <Button
-              className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
-              onClick={() => handleTicketSelect('group')}
-            >
-              Group Ticket
-              <br />
-              1000 L.E
-            </Button>
+      <div className="bg-purple-600/30 backdrop-blur-md border border-purple-400/20 rounded-2xl p-8 shadow-2xl">
+        {step === 'select-ticket' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-cyan-400 text-center">Select Ticket Type</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
+                onClick={() => handleTicketSelect('single')}
+              >
+                Single Ticket
+                <br />
+                300 L.E
+              </Button>
+              <Button
+                className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
+                onClick={() => handleTicketSelect('group')}
+              >
+                Group Ticket
+                <br />
+                1000 L.E
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {step === 'user-info' && (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {step === 'user-info' && (
+          <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-cyan-400 mb-6">
               {ticketType === 'single' ? 'Single Ticket (300 L.E)' : 'Group Ticket (1000 L.E)'}
@@ -234,6 +243,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
           </div>
         </form>
       )}
+      </div>
     </div>
   );
 }
