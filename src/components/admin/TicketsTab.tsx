@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from 'sonner';
+import { sendWelcomeEmail } from '@/lib/email';
 
 interface Ticket {
   _id: string;
@@ -61,7 +62,20 @@ export default function TicketsTab() {
         throw new Error('Failed to verify ticket');
       }
 
-      toast.success('Ticket verified and user created!');
+      const data = await response.json();
+      
+      // Send welcome email
+      try {
+        await sendWelcomeEmail({
+          to_email: data.user.email,
+          to_name: data.user.name,
+        });
+        toast.success('Ticket verified and welcome email sent!');
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        toast.success('Ticket verified but failed to send email');
+      }
+
       // Remove the verified ticket from the list
       setTickets(tickets.filter(ticket => ticket._id !== ticketId));
     } catch (error) {
