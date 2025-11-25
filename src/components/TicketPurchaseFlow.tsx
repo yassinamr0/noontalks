@@ -9,7 +9,7 @@ type TicketType = 'single' | 'group' | null;
 type PaymentMethod = 'telda' | 'instapay' | null;
 
 export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => void }) {
-  const [step, setStep] = useState<'select-ticket' | 'select-payment' | 'user-info'>('select-ticket');
+  const [step, setStep] = useState<'select-ticket' | 'user-info'>('select-ticket');
   const [ticketType, setTicketType] = useState<TicketType>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
   const [formData, setFormData] = useState({
@@ -22,7 +22,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   const handleTicketSelect = (type: TicketType) => {
     setTicketType(type);
-    setStep('select-payment');
+    setStep('user-info');
   };
 
   const handlePaymentSelect = (method: PaymentMethod) => {
@@ -33,7 +33,6 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     } else if (method === 'instapay') {
       window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
     }
-    setStep('user-info');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +47,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.paymentProof) {
+    if (!formData.name || !formData.email || !formData.paymentProof || !paymentMethod) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -72,154 +71,169 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit ticket purchase');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit ticket purchase');
       }
 
       toast.success('Ticket purchase submitted for verification!');
       onComplete();
     } catch (error) {
       console.error('Error submitting ticket purchase:', error);
-      toast.error('Failed to submit ticket purchase. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to submit ticket purchase. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className="text-center">
-            {step === 'select-ticket' && 'Select Ticket Type'}
-            {step === 'select-payment' && 'Select Payment Method'}
-            {step === 'user-info' && 'Enter Your Information'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {step === 'select-ticket' && (
-            <div className="space-y-4">
-              <Button
-className="w-full py-6 text-lg bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => handleTicketSelect('single')}
-              >
-                Single Ticket - 300 L.E
-              </Button>
-              <Button
-className="w-full py-6 text-lg border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-                onClick={() => handleTicketSelect('group')}
-              >
-                Group Ticket - 1000 L.E
-              </Button>
-            </div>
-          )}
+    <div className="w-full max-w-2xl mx-auto p-4">
+      {step === 'select-ticket' && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-cyan-400 text-center">Select Ticket Type</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
+              onClick={() => handleTicketSelect('single')}
+            >
+              Single Ticket
+              <br />
+              300 L.E
+            </Button>
+            <Button
+              className="py-8 text-lg font-semibold bg-cyan-400 hover:bg-cyan-500 text-black transition-all duration-300 rounded-lg"
+              onClick={() => handleTicketSelect('group')}
+            >
+              Group Ticket
+              <br />
+              1000 L.E
+            </Button>
+          </div>
+        </div>
+      )}
 
-          {step === 'select-payment' && (
-            <div className="space-y-4">
-              <p className="text-center mb-4">
-                {ticketType === 'single' 
-                  ? 'Single Ticket (300 L.E)' 
-                  : 'Group Ticket (1000 L.E)'}
-              </p>
-              <Button
-className="w-full py-6 text-lg flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+      {step === 'user-info' && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-cyan-400 mb-6">
+              {ticketType === 'single' ? 'Single Ticket (300 L.E)' : 'Group Ticket (1000 L.E)'}
+            </h2>
+          </div>
+
+          {/* Payment Method Selection */}
+          <div className="space-y-3">
+            <Label className="text-cyan-400 font-semibold">Select Payment Method *</Label>
+            <div className="flex gap-4">
+              <button
+                type="button"
                 onClick={() => handlePaymentSelect('telda')}
+                className={`flex-1 p-4 rounded-lg transition-all duration-300 border-2 ${
+                  paymentMethod === 'telda'
+                    ? 'border-cyan-400 bg-cyan-400/10'
+                    : 'border-gray-600 hover:border-cyan-400'
+                }`}
               >
                 <img 
-                  src="/telda.jpg" 
+                  src="/Telda.jpg" 
                   alt="Telda" 
-                  className="h-6 w-6 object-contain" 
+                  className="h-12 w-full object-contain"
                 />
-                Pay with Telda
-              </Button>
-              <Button
-className="w-full py-6 text-lg flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+              </button>
+              <button
+                type="button"
                 onClick={() => handlePaymentSelect('instapay')}
+                className={`flex-1 p-4 rounded-lg transition-all duration-300 border-2 ${
+                  paymentMethod === 'instapay'
+                    ? 'border-cyan-400 bg-cyan-400/10'
+                    : 'border-gray-600 hover:border-cyan-400'
+                }`}
               >
                 <img 
                   src="/instapay.png" 
                   alt="Instapay" 
-                  className="h-6 w-6 object-contain" 
+                  className="h-12 w-full object-contain"
                 />
-                Pay with Instapay
-              </Button>
-              <Button
-                className="w-full mt-2 bg-transparent hover:bg-accent text-accent-foreground"
-                onClick={() => setStep('select-ticket')}
-                disabled={isSubmitting}
-              >
-                Back
-              </Button>
+              </button>
             </div>
-          )}
+          </div>
 
-          {step === 'user-info' && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="paymentProof">Proof of Payment *</Label>
-                <Input
-                  id="paymentProof"
-                  name="paymentProof"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Please upload a screenshot or photo of your payment confirmation
-                </p>
-              </div>
-              <div className="flex justify-between pt-2">
-                <Button
-                  type="button"
-className="border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-                  onClick={() => setStep('select-payment')}
-                  disabled={isSubmitting}
-                >
-                  Back
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+          {/* User Information */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name" className="text-cyan-400 font-semibold">Full Name *</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                className="mt-2 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="email" className="text-cyan-400 font-semibold">Email *</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="mt-2 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone" className="text-cyan-400 font-semibold">Phone Number</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="mt-2 bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                placeholder="Enter your phone number (optional)"
+              />
+            </div>
+          </div>
+
+          {/* Payment Proof Upload */}
+          <div>
+            <Label htmlFor="paymentProof" className="text-cyan-400 font-semibold">Proof of Payment *</Label>
+            <Input
+              id="paymentProof"
+              name="paymentProof"
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleInputChange}
+              required
+              className="mt-2 bg-gray-900 border-gray-700 text-white file:bg-cyan-400 file:text-black file:font-semibold file:border-0 file:rounded file:cursor-pointer"
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              Please upload a screenshot or photo of your payment confirmation
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              onClick={() => setStep('select-ticket')}
+              disabled={isSubmitting}
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2"
+            >
+              Back
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex-1 bg-cyan-400 hover:bg-cyan-500 text-black font-semibold py-2 transition-all duration-300"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
