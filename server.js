@@ -382,13 +382,20 @@ app.post('/api/tickets/purchase', (req, res, next) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Check if email already exists in either users or tickets
+    // Check if email already exists in users
     const existingUser = await User.findOne({ email });
-    const existingTicket = await Ticket.findOne({ email });
     
-    if (existingUser || existingTicket) {
-      console.error('Email already registered');
+    if (existingUser) {
+      console.error('Email already registered as user');
       return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    // Check for unverified tickets (not verified ones)
+    const existingTicket = await Ticket.findOne({ email, isVerified: false });
+    
+    if (existingTicket) {
+      console.error('Email already has unverified ticket:', existingTicket._id);
+      return res.status(400).json({ message: 'Email already has a pending ticket. Please wait for verification or contact support.' });
     }
 
     // Convert file buffer to base64 for storage

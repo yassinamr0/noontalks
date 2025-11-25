@@ -31,12 +31,10 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     if (method === 'telda') {
-      // Try to open Telda app first, fallback to web
+      // Open Telda link - works on both app and web
       if (isMobile) {
-        window.location.href = 'telda://user/jamelakhazbakk';
-        setTimeout(() => {
-          window.open('https://telda.app/jamelakhazbakk', '_blank');
-        }, 1000);
+        // Try the universal link first which works with both app and web
+        window.location.href = 'https://telda.app/jamelakhazbakk';
       } else {
         window.open('https://telda.app/jamelakhazbakk', '_blank');
       }
