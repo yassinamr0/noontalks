@@ -133,6 +133,31 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Fix database indexes (admin only)
+app.post('/api/admin/fix-indexes', adminAuth, async (req, res) => {
+  try {
+    if (!isConnectedToMongo) {
+      return res.status(503).json({ message: 'Database connection not available' });
+    }
+
+    // Drop the old index and recreate with sparse
+    await Ticket.collection.dropIndex('email_1').catch(() => {
+      // Index might not exist, that's ok
+    });
+
+    // Create new sparse index
+    await Ticket.collection.createIndex({ email: 1 }, { unique: true, sparse: true });
+
+    res.json({ 
+      message: 'Database indexes fixed successfully',
+      status: 'ok'
+    });
+  } catch (error) {
+    console.error('Error fixing indexes:', error);
+    res.status(500).json({ message: 'Error fixing indexes', error: error.message });
+  }
+});
+
 // Debug endpoint (temporary)
 app.get('/api/debug/env', (req, res) => {
   res.json({
