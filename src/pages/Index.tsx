@@ -27,7 +27,7 @@ export default function Index() {
             
             <Button
               onClick={() => setShowPurchaseFlow(true)}
-              className="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border-2 border-cyan-400 transition-all duration-300 font-semibold rounded-full shadow-2xl hover:shadow-cyan-500/30 hover:scale-105 px-8 py-6 text-lg"
+              className="animated-border-button bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border-2 border-cyan-400 transition-all duration-300 font-semibold rounded-full hover:scale-105 px-8 py-6 text-lg"
             >
               Buy Ticket
             </Button>
@@ -37,25 +37,27 @@ export default function Index() {
           <Countdown />
 
           {/* Contact Us Section */}
-          <div className="mt-16 py-12 px-6 rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-800/40 backdrop-blur-md border border-purple-500/30 shadow-2xl">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">Get In Touch</h2>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          <div className="mt-20 py-12 px-6">
+            <h2 className="text-4xl md:text-5xl font-black text-white text-center mb-12 tracking-tight">
+              Get In <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Touch</span>
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
               <a
                 href="https://wa.me/+201028449443"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/50 shadow-xl"
+                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-full transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-green-500/60 shadow-xl text-lg"
               >
-                <MessageCircle size={24} />
+                <MessageCircle size={28} />
                 <span>WhatsApp</span>
               </a>
               <a
                 href="https://www.instagram.com/noon.talks/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 hover:from-pink-600 hover:via-red-600 hover:to-yellow-600 text-white font-semibold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/50 shadow-xl"
+                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 hover:from-pink-600 hover:via-red-600 hover:to-yellow-600 text-white font-bold rounded-full transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-pink-500/60 shadow-xl text-lg"
               >
-                <Instagram size={24} />
+                <Instagram size={28} />
                 <span>Instagram</span>
               </a>
             </div>

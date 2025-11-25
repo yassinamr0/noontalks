@@ -69,7 +69,7 @@ const User = mongoose.model('User', userSchema);
 // Ticket schema for unverified purchases
 const ticketSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true, sparse: true },
   phone: String,
   ticketType: { type: String, enum: ['single', 'group'], required: true },
   paymentMethod: { 

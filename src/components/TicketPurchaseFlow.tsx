@@ -29,7 +29,16 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     setPaymentMethod(method);
     // Open payment link in new tab
     if (method === 'telda') {
-      window.open('https://telda.app/jamelakhazbakk', '_blank');
+      // Try to open Telda app first, fallback to web
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = 'telda://user/jamelakhazbakk';
+        setTimeout(() => {
+          window.open('https://telda.app/jamelakhazbakk', '_blank');
+        }, 1000);
+      } else {
+        window.open('https://telda.app/jamelakhazbakk', '_blank');
+      }
     } else if (method === 'instapay') {
       window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
     }

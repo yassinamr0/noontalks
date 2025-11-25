@@ -247,6 +247,33 @@ html, body {
   }
 }
 
+@keyframes animatedBorder {
+  0% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.1);
+  }
+  25% {
+    background-position: 100% 50%;
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.7), inset 0 0 20px rgba(34, 211, 238, 0.2);
+  }
+  50% {
+    background-position: 100% 50%;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.1);
+  }
+  75% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.7), inset 0 0 20px rgba(34, 211, 238, 0.2);
+  }
+  100% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.1);
+  }
+}
+
+.animated-border-button {
+  animation: animatedBorder 3s ease-in-out infinite;
+}
+
 @media (max-width: 768px) {
   .countdown-grid {
     grid-template-columns: repeat(2, 1fr);
