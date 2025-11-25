@@ -43,10 +43,7 @@ let isConnectedToMongo = false;
 
 if (process.env.MONGODB_URI) {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
     isConnectedToMongo = true;
   } catch (err) {
@@ -84,21 +81,8 @@ const ticketSchema = new mongoose.Schema({
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 
-// Configure multer for file uploads
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
-  }
-});
+// Configure multer for file uploads - use memory storage for Vercel
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage,
@@ -359,11 +343,6 @@ app.post('/api/tickets/purchase', (req, res, next) => {
 
     if (!name || !email || !ticketType) {
       console.error('Missing required fields');
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (e) {
-        console.error('Error deleting file:', e);
-      }
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -373,13 +352,12 @@ app.post('/api/tickets/purchase', (req, res, next) => {
     
     if (existingUser || existingTicket) {
       console.error('Email already registered');
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (e) {
-        console.error('Error deleting file:', e);
-      }
       return res.status(400).json({ message: 'Email already registered' });
     }
+
+    // Convert file buffer to base64 for storage
+    const fileBase64 = req.file.buffer.toString('base64');
+    const fileData = `data:${req.file.mimetype};base64,${fileBase64}`;
 
     const ticket = new Ticket({
       name,
@@ -387,7 +365,7 @@ app.post('/api/tickets/purchase', (req, res, next) => {
       phone,
       ticketType,
       paymentMethod,
-      paymentProof: `/uploads/${req.file.filename}`
+      paymentProof: fileData
     });
 
     await ticket.save();
@@ -395,17 +373,15 @@ app.post('/api/tickets/purchase', (req, res, next) => {
 
     return res.status(201).json({ 
       message: 'Ticket purchase submitted for verification',
-      ticket
+      ticket: {
+        _id: ticket._id,
+        name: ticket.name,
+        email: ticket.email,
+        message: 'Ticket submitted for verification'
+      }
     });
   } catch (error) {
     console.error('Error processing ticket purchase:', error);
-    if (req.file) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (e) {
-        console.error('Error deleting file:', e);
-      }
-    }
     return res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
   }
 });
