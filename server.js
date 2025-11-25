@@ -41,16 +41,20 @@ app.use((req, res, next) => {
 // MongoDB connection
 let isConnectedToMongo = false;
 
-try {
-  await mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  });
-  console.log('Connected to MongoDB');
-  isConnectedToMongo = true;
-} catch (err) {
-  console.error('MongoDB connection error:', err);
-  isConnectedToMongo = false;
+if (process.env.MONGODB_URI) {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('Connected to MongoDB');
+    isConnectedToMongo = true;
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    isConnectedToMongo = false;
+  }
+} else {
+  console.warn('MONGODB_URI not set in environment variables');
 }
 
 // User schema
@@ -71,7 +75,7 @@ const ticketSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: String,
   ticketType: { type: String, enum: ['single', 'group'], required: true },
-  paymentMethod: { type: String, enum: ['telda', 'instapay'], required: true },
+  paymentMethod: { type: String, enum: ['telda', 'instapay'] },
   paymentProof: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   verifiedAt: Date,
@@ -128,18 +132,28 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mongoConnected: isConnectedToMongo,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Debug endpoint (temporary)
 app.get('/api/debug/env', (req, res) => {
   res.json({
     hasAdminToken: !!process.env.ADMIN_TOKEN,
     hasAdminPassword: !!process.env.ADMIN_PASSWORD,
     hasMongoUri: !!process.env.MONGODB_URI,
-    nodeEnv: process.env.NODE_ENV
+    nodeEnv: process.env.NODE_ENV,
+    mongoConnected: isConnectedToMongo
   });
 });
 
 // API Routes
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', (req, res) => {
   console.log('Login attempt:', { body: req.body });
   try {
     const { password } = req.body;
@@ -463,12 +477,24 @@ app.use(express.static(path.join(__dirname, 'dist')));
 // Error handling middleware - before catch-all route
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ message: 'Internal server error', error: err.message });
+  if (!res.headersSent) {
+    res.status(500).json({ message: 'Internal server error', error: err.message });
+  }
 });
 
 // Handle React routing - must be LAST after all API routes and error handling
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  try {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } catch (err) {
+    console.error('Error serving index.html:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Global error handler for unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 // Export for Vercel
