@@ -5,6 +5,7 @@ import Countdown from "@/components/Countdown";
 import { useState } from 'react';
 import TicketPurchaseFlow from "@/components/TicketPurchaseFlow";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { MessageCircle, Instagram } from 'lucide-react';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -34,6 +35,31 @@ export default function Index() {
           
           {/* Countdown section */}
           <Countdown />
+
+          {/* Contact Us Section */}
+          <div className="mt-16 py-12 px-6 rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-800/40 backdrop-blur-md border border-purple-500/30 shadow-2xl">
+            <h2 className="text-3xl font-bold text-white text-center mb-8">Get In Touch</h2>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <a
+                href="https://wa.me/+201028449443"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/50 shadow-xl"
+              >
+                <MessageCircle size={24} />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href="https://www.instagram.com/noon.talks/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 hover:from-pink-600 hover:via-red-600 hover:to-yellow-600 text-white font-semibold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/50 shadow-xl"
+              >
+                <Instagram size={24} />
+                <span>Instagram</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 

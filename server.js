@@ -240,6 +240,9 @@ app.delete('/api/admin/users/:userId', adminAuth, async (req, res) => {
     // Delete the user
     await User.findByIdAndDelete(userId);
     
+    // Also delete any associated ticket with the same email
+    await Ticket.deleteOne({ email: user.email });
+    
     res.json({ 
       success: true,
       message: 'User deleted successfully' 
