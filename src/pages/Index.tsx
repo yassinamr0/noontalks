@@ -38,7 +38,7 @@ export default function Index() {
       </div>
 
       <Dialog open={showPurchaseFlow} onOpenChange={setShowPurchaseFlow}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-transparent border-0 shadow-none p-0">
           <TicketPurchaseFlow onComplete={() => setShowPurchaseFlow(false)} />
         </DialogContent>
       </Dialog>
