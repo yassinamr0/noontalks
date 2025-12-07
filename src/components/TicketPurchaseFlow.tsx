@@ -28,13 +28,11 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     setPaymentMethod(method);
     
     if (method === 'telda') {
-      const teldaWebLink = 'https://telda.app/jamelakhazbakk';
-      // Just open the web link - it should handle the app redirect
-      window.location.href = teldaWebLink;
+      // Try deep link first, then fallback to web
+      window.open('https://telda.app/jamelakhazbakk', '_blank');
     } else if (method === 'instapay') {
-      const instapayWebLink = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
-      // Just open the web link - it should handle the app redirect
-      window.location.href = instapayWebLink;
+      // Try deep link first, then fallback to web
+      window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
     }
   };
 
