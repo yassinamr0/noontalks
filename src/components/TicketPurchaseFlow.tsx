@@ -19,6 +19,8 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [showTeldaQR, setShowTeldaQR] = useState(false);
+
   const handleTicketSelect = (type: TicketType) => {
     setTicketType(type);
     setStep('user-info');
@@ -27,18 +29,12 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
     
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
     if (method === 'telda') {
-      if (isAndroid) {
-        window.location.href = 'intent://user/jamelakhazbakk#Intent;scheme=telda;S.browser_fallback_url=https://telda.app/jamelakhazbakk;end';
-      } else if (isIOS) {
-        window.location.href = 'telda://user/jamelakhazbakk';
-      } else {
-        window.open('https://telda.app/jamelakhazbakk', '_blank');
-      }
+      setShowTeldaQR(true);
     } else if (method === 'instapay') {
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
       if (isAndroid) {
         window.location.href = 'intent://ipn.eg/S/raniaabdullah/instapay/7nhZC2#Intent;scheme=https;S.browser_fallback_url=https://ipn.eg/S/raniaabdullah/instapay/7nhZC2;end';
       } else if (isIOS) {
@@ -107,6 +103,33 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
+      {showTeldaQR && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowTeldaQR(false)}>
+          <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl border-2 border-purple-400/60 rounded-3xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center space-y-6">
+<h3 className="text-3xl font-bold text-white">Scan to Pay with Telda</h3>
+              <div className="bg-white p-4 rounded-2xl">
+                <img 
+                  src="/teldacode.jpg" 
+                  alt="Telda QR Code" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-purple-200 text-sm">Send payment to:</p>
+                <p className="text-2xl font-bold text-white">@jamelakhazbakk</p>
+              </div>
+              <Button
+                onClick={() => setShowTeldaQR(false)}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 transition-all duration-300 border-2 border-purple-400/60 rounded-lg shadow-lg hover:shadow-purple-500/50"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-gradient-to-br from-purple-900/90 to-purple-800/90 backdrop-blur-xl border border-purple-400/40 rounded-3xl p-8 shadow-2xl">
         {step === 'select-ticket' && (
           <div className="space-y-8">
