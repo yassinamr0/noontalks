@@ -26,46 +26,15 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     if (method === 'telda') {
-      const teldaDeepLink = 'telda://user/jamelakhazbakk';
       const teldaWebLink = 'https://telda.app/jamelakhazbakk';
-      
-      if (isMobile) {
-        // Try to open app using an anchor element click
-        const a = document.createElement('a');
-        a.href = teldaDeepLink;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        // Fallback to web if app doesn't open within 2 seconds
-        const start = Date.now();
-        setTimeout(() => {
-          if (Date.now() - start < 2100) {
-            window.open(teldaWebLink, '_blank');
-          }
-        }, 2000);
-      } else {
-        window.open(teldaWebLink, '_blank');
-      }
+      // Just open the web link - it should handle the app redirect
+      window.location.href = teldaWebLink;
     } else if (method === 'instapay') {
       const instapayWebLink = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
-      
-      if (isMobile) {
-        // Create and click an anchor for the deep link
-        const a = document.createElement('a');
-        a.href = instapayWebLink;
-        a.target = '_blank';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        window.open(instapayWebLink, '_blank');
-      }
+      // Just open the web link - it should handle the app redirect
+      window.location.href = instapayWebLink;
     }
   };
 
