@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from 'sonner';
 
 type TicketType = 'single' | 'group' | null;
@@ -27,26 +26,45 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
-    // Open payment link in new tab
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     if (method === 'telda') {
-      // Use deep link for mobile app, web link for desktop
+      const teldaDeepLink = 'telda://user/jamelakhazbakk';
+      const teldaWebLink = 'https://telda.app/jamelakhazbakk';
+      
       if (isMobile) {
-        // Deep link to Telda app
-        window.location.href = 'telda://user/jamelakhazbakk';
+        // Try to open app using an anchor element click
+        const a = document.createElement('a');
+        a.href = teldaDeepLink;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Fallback to web if app doesn't open within 2 seconds
+        const start = Date.now();
+        setTimeout(() => {
+          if (Date.now() - start < 2100) {
+            window.open(teldaWebLink, '_blank');
+          }
+        }, 2000);
       } else {
-        window.open('https://telda.app/jamelakhazbakk', '_blank');
+        window.open(teldaWebLink, '_blank');
       }
     } else if (method === 'instapay') {
-      // Try to open Instapay app first, fallback to web
+      const instapayWebLink = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
+      
       if (isMobile) {
-        window.location.href = 'instapay://send?phone=201028449443';
-        setTimeout(() => {
-          window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
-        }, 1000);
+        // Create and click an anchor for the deep link
+        const a = document.createElement('a');
+        a.href = instapayWebLink;
+        a.target = '_blank';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } else {
-        window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
+        window.open(instapayWebLink, '_blank');
       }
     }
   };
@@ -60,9 +78,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async () => {
     if (!formData.name) {
       toast.error('Please enter your name');
       return;
@@ -133,7 +149,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
                 onClick={() => handleTicketSelect('group')}
               >
                 <div className="flex flex-col items-center">
-                  <span>Group Of 4 Ticket</span>
+                  <span>Group Ticket</span>
                   <span className="text-2xl font-bold mt-1">1000 L.E</span>
                 </div>
               </Button>
@@ -142,131 +158,132 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
         )}
 
         {step === 'user-info' && (
-          <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">
-              {ticketType === 'single' ? 'Single Ticket' : 'Group Of 4 Ticket'}
-            </h2>
-            <p className="text-purple-300 text-lg font-semibold">
-              {ticketType === 'single' ? '300 L.E' : '1000 L.E'}
-            </p>
-          </div>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-white mb-2">
+                {ticketType === 'single' ? 'Single Ticket' : 'Group Ticket'}
+              </h2>
+              <p className="text-purple-300 text-lg font-semibold">
+                {ticketType === 'single' ? '300 L.E' : '1000 L.E'}
+              </p>
+            </div>
 
-          {/* Payment Method Selection */}
-          <div className="space-y-4">
-            <Label className="text-white font-bold text-base">Select Payment Method</Label>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => handlePaymentSelect('telda')}
-                className={`flex-1 p-5 rounded-xl transition-all duration-300 border-2 backdrop-blur-sm ${
-                  paymentMethod === 'telda'
-                    ? 'border-purple-300 bg-purple-500/30 shadow-lg shadow-purple-500/30'
-                    : 'border-purple-500/40 hover:border-purple-400 hover:bg-purple-500/10'
-                }`}
-              >
-                <img 
-                  src="/Telda.jpg" 
-                  alt="Telda" 
-                  className="h-14 w-full object-contain"
+            {/* Payment Method Selection */}
+            <div className="space-y-4">
+              <Label className="text-white font-bold text-base">Select Payment Method</Label>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => handlePaymentSelect('telda')}
+                  className={`flex-1 p-5 rounded-xl transition-all duration-300 border-2 backdrop-blur-sm ${
+                    paymentMethod === 'telda'
+                      ? 'border-purple-300 bg-purple-500/30 shadow-lg shadow-purple-500/30'
+                      : 'border-purple-500/40 hover:border-purple-400 hover:bg-purple-500/10'
+                  }`}
+                >
+                  <img 
+                    src="/Telda.jpg" 
+                    alt="Telda" 
+                    className="h-14 w-full object-contain"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePaymentSelect('instapay')}
+                  className={`flex-1 p-5 rounded-xl transition-all duration-300 border-2 backdrop-blur-sm ${
+                    paymentMethod === 'instapay'
+                      ? 'border-purple-300 bg-purple-500/30 shadow-lg shadow-purple-500/30'
+                      : 'border-purple-500/40 hover:border-purple-400 hover:bg-purple-500/10'
+                  }`}
+                >
+                  <img 
+                    src="/instapay.png" 
+                    alt="Instapay" 
+                    className="h-14 w-full object-contain"
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* User Information */}
+            <div className="space-y-5">
+              <div>
+                <Label htmlFor="name" className="text-white font-bold text-sm block mb-2">Full Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white placeholder-purple-400 rounded-lg focus:border-purple-400 focus:bg-purple-950/80 transition-all py-3 px-4"
+                  placeholder="Enter your full name"
                 />
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePaymentSelect('instapay')}
-                className={`flex-1 p-5 rounded-xl transition-all duration-300 border-2 backdrop-blur-sm ${
-                  paymentMethod === 'instapay'
-                    ? 'border-purple-300 bg-purple-500/30 shadow-lg shadow-purple-500/30'
-                    : 'border-purple-500/40 hover:border-purple-400 hover:bg-purple-500/10'
-                }`}
-              >
-                <img 
-                  src="/instapay.png" 
-                  alt="Instapay" 
-                  className="h-14 w-full object-contain"
+              </div>
+              <div>
+                <Label htmlFor="email" className="text-white font-bold text-sm block mb-2">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white placeholder-purple-400 rounded-lg focus:border-purple-400 focus:bg-purple-950/80 transition-all py-3 px-4"
+                  placeholder="Enter your email"
                 />
-              </button>
+              </div>
+              <div>
+                <Label htmlFor="phone" className="text-white font-bold text-sm block mb-2">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white placeholder-purple-400 rounded-lg focus:border-purple-400 focus:bg-purple-950/80 transition-all py-3 px-4"
+                  placeholder="Enter your phone number (optional)"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* User Information */}
-          <div className="space-y-5">
+            {/* Payment Proof Upload */}
             <div>
-              <Label htmlFor="name" className="text-white font-bold text-sm block mb-2">Full Name *</Label>
+              <Label htmlFor="paymentProof" className="text-white font-bold text-sm block mb-2">Proof of Payment *</Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white placeholder-purple-400 rounded-lg focus:border-purple-400 focus:bg-purple-950/80 transition-all py-3 px-4"
-                placeholder="Enter your full name"
+                  id="paymentProof"
+                  name="paymentProof"
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleInputChange}
+                  required
+                  className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white rounded-lg file:bg-purple-600 file:text-white file:font-semibold file:border-0 file:rounded file:cursor-pointer file:px-4 file:py-2 hover:file:bg-purple-700 transition-all py-3 px-4"
               />
+              <p className="text-xs text-purple-300 mt-3">
+                📸 Please upload a screenshot or photo of your payment confirmation
+              </p>
             </div>
-            <div>
-              <Label htmlFor="email" className="text-white font-bold text-sm block mb-2">Email *</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white placeholder-purple-400 rounded-lg focus:border-purple-400 focus:bg-purple-950/80 transition-all py-3 px-4"
-                placeholder="Enter your email"
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone" className="text-white font-bold text-sm block mb-2">Phone Number</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white placeholder-purple-400 rounded-lg focus:border-purple-400 focus:bg-purple-950/80 transition-all py-3 px-4"
-                placeholder="Enter your phone number (optional)"
-              />
-            </div>
-          </div>
 
-          {/* Payment Proof Upload */}
-          <div>
-            <Label htmlFor="paymentProof" className="text-white font-bold text-sm block mb-2">Proof of Payment *</Label>
-            <Input
-                id="paymentProof"
-                name="paymentProof"
-                type="file"
-                accept="image/*,.pdf"
-                onChange={handleInputChange}
-                required
-                className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white rounded-lg file:bg-purple-600 file:text-white file:font-semibold file:border-0 file:rounded file:cursor-pointer file:px-4 file:py-2 hover:file:bg-purple-700 transition-all py-3 px-4"
-            />
-            <p className="text-xs text-purple-300 mt-3">
-              📸 Please upload a screenshot or photo of your payment confirmation
-            </p>
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-6">
+              <Button
+                type="button"
+                onClick={() => setStep('select-ticket')}
+                disabled={isSubmitting}
+                className="flex-1 bg-purple-700/60 hover:bg-purple-600 text-white font-bold py-3 border-2 border-purple-500/50 rounded-lg transition-all duration-300 hover:shadow-lg"
+              >
+                Back
+              </Button>
+              <Button 
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 transition-all duration-300 border-2 border-purple-400/60 rounded-lg shadow-lg hover:shadow-purple-500/50 hover:scale-105 disabled:opacity-50"
+              >
+                {isSubmitting ? '⏳ Submitting...' : '✓ Submit'}
+              </Button>
+            </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
-            <Button
-              type="button"
-              onClick={() => setStep('select-ticket')}
-              disabled={isSubmitting}
-              className="flex-1 bg-purple-700/60 hover:bg-purple-600 text-white font-bold py-3 border-2 border-purple-500/50 rounded-lg transition-all duration-300 hover:shadow-lg"
-            >
-              Back
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 transition-all duration-300 border-2 border-purple-400/60 rounded-lg shadow-lg hover:shadow-purple-500/50 hover:scale-105 disabled:opacity-50"
-            >
-              {isSubmitting ? '⏳ Submitting...' : '✓ Submit'}
-            </Button>
-          </div>
-        </form>
-      )}
+        )}
       </div>
     </div>
   );
