@@ -32,28 +32,21 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     
     if (method === 'telda') {
       if (isAndroid) {
-        // Android Intent URL without package name - browser will find the right app
         window.location.href = 'intent://user/jamelakhazbakk#Intent;scheme=telda;S.browser_fallback_url=https://telda.app/jamelakhazbakk;end';
       } else if (isIOS) {
-        // iOS - try deep link
         window.location.href = 'telda://user/jamelakhazbakk';
       } else {
-        // Desktop
         window.open('https://telda.app/jamelakhazbakk', '_blank');
       }
     } else if (method === 'instapay') {
       if (isAndroid) {
-        // Try the web URL as intent first
         window.location.href = 'intent://ipn.eg/S/raniaabdullah/instapay/7nhZC2#Intent;scheme=https;S.browser_fallback_url=https://ipn.eg/S/raniaabdullah/instapay/7nhZC2;end';
       } else if (isIOS) {
-        // iOS
         window.location.href = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
       } else {
-        // Desktop
         window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
       }
     }
-  };);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +148,6 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               </p>
             </div>
 
-            {/* Payment Method Selection */}
             <div className="space-y-4">
               <Label className="text-white font-bold text-base">Select Payment Method</Label>
               <div className="flex gap-4">
@@ -192,7 +184,6 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               </div>
             </div>
 
-            {/* User Information */}
             <div className="space-y-5">
               <div>
                 <Label htmlFor="name" className="text-white font-bold text-sm block mb-2">Full Name *</Label>
@@ -233,24 +224,22 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               </div>
             </div>
 
-            {/* Payment Proof Upload */}
             <div>
               <Label htmlFor="paymentProof" className="text-white font-bold text-sm block mb-2">Proof of Payment *</Label>
               <Input
-                  id="paymentProof"
-                  name="paymentProof"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleInputChange}
-                  required
-                  className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white rounded-lg file:bg-purple-600 file:text-white file:font-semibold file:border-0 file:rounded file:cursor-pointer file:px-4 file:py-2 hover:file:bg-purple-700 transition-all py-3 px-4"
+                id="paymentProof"
+                name="paymentProof"
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleInputChange}
+                required
+                className="w-full bg-purple-950/60 border-2 border-purple-500/40 text-white rounded-lg file:bg-purple-600 file:text-white file:font-semibold file:border-0 file:rounded file:cursor-pointer file:px-4 file:py-2 hover:file:bg-purple-700 transition-all py-3 px-4"
               />
               <p className="text-xs text-purple-300 mt-3">
                 📸 Please upload a screenshot or photo of your payment confirmation
               </p>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-4 pt-6">
               <Button
                 type="button"
