@@ -27,13 +27,35 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
     
+    let url = '';
     if (method === 'telda') {
-      // Try deep link first, then fallback to web
-      window.open('https://telda.app/jamelakhazbakk', '_blank');
+      url = 'https://telda.app/jamelakhazbakk';
     } else if (method === 'instapay') {
-      // Try deep link first, then fallback to web
-      window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
+      url = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
     }
+    
+    // Create a real anchor element that will trigger Universal Links properly
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    // Must be attached to DOM for mobile browsers to recognize it
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    // Simulate a real user click
+    const clickEvent = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    });
+    link.dispatchEvent(clickEvent);
+    
+    // Clean up after a short delay
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 100);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
