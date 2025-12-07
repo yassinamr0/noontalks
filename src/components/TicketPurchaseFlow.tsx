@@ -27,35 +27,37 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
     
-    let url = '';
     if (method === 'telda') {
-      url = 'https://telda.app/jamelakhazbakk';
+      const deepLink = 'telda://user/jamelakhazbakk';
+      const webLink = 'https://telda.app/jamelakhazbakk';
+      
+      // Try opening via iframe for deep link
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
+      
+      // Fallback to web link after 1.5 seconds if app doesn't open
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        window.open(webLink, '_blank');
+      }, 1500);
     } else if (method === 'instapay') {
-      url = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
+      const webLink = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
+      
+      // Try opening via iframe for deep link
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = webLink;
+      document.body.appendChild(iframe);
+      
+      // Fallback to opening in new tab after 1.5 seconds
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        window.open(webLink, '_blank');
+      }, 1500);
     }
-    
-    // Create a real anchor element that will trigger Universal Links properly
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    
-    // Must be attached to DOM for mobile browsers to recognize it
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    
-    // Simulate a real user click
-    const clickEvent = new MouseEvent('click', {
-      view: window,
-      bubbles: true,
-      cancelable: true
-    });
-    link.dispatchEvent(clickEvent);
-    
-    // Clean up after a short delay
-    setTimeout(() => {
-      document.body.removeChild(link);
-    }, 100);
+  };);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
