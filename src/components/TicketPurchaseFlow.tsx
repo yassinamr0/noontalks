@@ -27,35 +27,31 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
     
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
     if (method === 'telda') {
-      const deepLink = 'telda://user/jamelakhazbakk';
-      const webLink = 'https://telda.app/jamelakhazbakk';
-      
-      // Try opening via iframe for deep link
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = deepLink;
-      document.body.appendChild(iframe);
-      
-      // Fallback to web link after 1.5 seconds if app doesn't open
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        window.open(webLink, '_blank');
-      }, 1500);
+      if (isAndroid) {
+        // Android Intent URL without package name - browser will find the right app
+        window.location.href = 'intent://user/jamelakhazbakk#Intent;scheme=telda;S.browser_fallback_url=https://telda.app/jamelakhazbakk;end';
+      } else if (isIOS) {
+        // iOS - try deep link
+        window.location.href = 'telda://user/jamelakhazbakk';
+      } else {
+        // Desktop
+        window.open('https://telda.app/jamelakhazbakk', '_blank');
+      }
     } else if (method === 'instapay') {
-      const webLink = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
-      
-      // Try opening via iframe for deep link
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = webLink;
-      document.body.appendChild(iframe);
-      
-      // Fallback to opening in new tab after 1.5 seconds
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        window.open(webLink, '_blank');
-      }, 1500);
+      if (isAndroid) {
+        // Try the web URL as intent first
+        window.location.href = 'intent://ipn.eg/S/raniaabdullah/instapay/7nhZC2#Intent;scheme=https;S.browser_fallback_url=https://ipn.eg/S/raniaabdullah/instapay/7nhZC2;end';
+      } else if (isIOS) {
+        // iOS
+        window.location.href = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
+      } else {
+        // Desktop
+        window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
+      }
     }
   };);
   };
