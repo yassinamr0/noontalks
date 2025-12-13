@@ -14,6 +14,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  ticketType?: string;
   entries: number;
   createdAt: string;
   lastEntry?: string;
@@ -83,7 +84,7 @@ export const adminLogin = async (password: string): Promise<AdminLoginResponse> 
   }
 };
 
-export const addUser = async (userData: { name?: string; email: string; phone?: string }): Promise<User> => {
+export const addUser = async (userData: { name?: string; email: string; phone?: string; ticketType?: string }): Promise<User> => {
   try {
     const response = await fetch(`/api/admin/add-user`, 
       fetchOptions('POST', userData)
