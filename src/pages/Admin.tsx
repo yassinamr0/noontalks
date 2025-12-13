@@ -14,6 +14,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  ticketType?: string;
   entries: number;
   createdAt: string;
   lastEntry?: string;
@@ -23,7 +24,8 @@ export default function Admin() {
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
-    phone: ""
+    phone: "",
+    ticketType: "single"
   });
   const [users, setUsers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState<'users' | 'tickets'>('users');
@@ -93,7 +95,8 @@ export default function Admin() {
       setNewUser({
         name: "",
         email: "",
-        phone: ""
+        phone: "",
+        ticketType: "single"
       });
       
       // Refresh user list
@@ -202,7 +205,7 @@ export default function Admin() {
                   <div>
                     <h2 className="text-xl font-semibold mb-4 text-black">Add New User</h2>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Input
                           type="text"
                           value={newUser.name}
@@ -222,6 +225,14 @@ export default function Admin() {
                           onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
                           placeholder="Phone (optional)"
                         />
+                        <select
+                          value={newUser.ticketType}
+                          onChange={(e) => setNewUser(prev => ({ ...prev, ticketType: e.target.value }))}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        >
+                          <option value="single">Single Ticket</option>
+                          <option value="group">Group Ticket</option>
+                        </select>
                       </div>
                       <Button 
                         onClick={handleAddUser}
@@ -241,6 +252,7 @@ export default function Admin() {
                             <th className="text-left p-2">Name</th>
                             <th className="text-left p-2">Email</th>
                             <th className="text-left p-2">Phone</th>
+                            <th className="text-left p-2">Ticket Type</th>
                             <th className="text-left p-2">Entries</th>
                             <th className="text-left p-2">Actions</th>
                           </tr>
@@ -251,6 +263,15 @@ export default function Admin() {
                               <td className="p-2">{user.name || '-'}</td>
                               <td className="p-2">{user.email}</td>
                               <td className="p-2">{user.phone || '-'}</td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  user.ticketType === 'group' 
+                                    ? 'bg-purple-100 text-purple-800' 
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {user.ticketType === 'group' ? 'Group' : 'Single'}
+                                </span>
+                              </td>
                               <td className="p-2">{user.entries}</td>
                               <td className="p-2">
                                 <div className="flex space-x-2">
