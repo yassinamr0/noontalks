@@ -54,12 +54,13 @@ if (process.env.MONGODB_URI) {
   console.warn('MONGODB_URI not set in environment variables');
 }
 
-// User schema
+// User schema - UPDATED WITH TICKET TYPE
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: String,
   qrCode: String,
+  ticketType: { type: String, enum: ['single', 'group'], default: 'single' },
   attended: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
@@ -205,14 +206,14 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
-// Add user endpoint
+// Add user endpoint - UPDATED TO INCLUDE TICKET TYPE
 app.post('/api/admin/add-user', adminAuth, async (req, res) => {
   try {
     if (!isConnectedToMongo) {
       return res.status(503).json({ message: 'Database connection not available' });
     }
 
-    const { name, email, phone } = req.body;
+    const { name, email, phone, ticketType } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
@@ -224,7 +225,13 @@ app.post('/api/admin/add-user', adminAuth, async (req, res) => {
     }
 
     const qrCode = Math.random().toString(36).substring(7);
-    const user = await User.create({ name, email, phone, qrCode });
+    const user = await User.create({ 
+      name, 
+      email, 
+      phone, 
+      qrCode,
+      ticketType: ticketType || 'single'
+    });
     res.json(user);
   } catch (error) {
     console.error('Error adding user:', error);
@@ -451,7 +458,7 @@ app.get('/api/admin/tickets', adminAuth, async (req, res) => {
   }
 });
 
-// Verify ticket endpoint
+// Verify ticket endpoint - UPDATED TO PASS TICKET TYPE
 app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
   try {
     if (!isConnectedToMongo) {
@@ -470,12 +477,13 @@ app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
     // Generate QR code for the user
     const qrCode = Math.random().toString(36).substring(7);
 
-    // Create user from ticket
+    // Create user from ticket - INCLUDING TICKET TYPE
     const user = new User({
       name: ticket.name,
       email: ticket.email,
       phone: ticket.phone,
-      qrCode
+      qrCode,
+      ticketType: ticket.ticketType
     });
 
     await user.save();
@@ -492,7 +500,8 @@ app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        qrCode: qrCode
+        qrCode: qrCode,
+        ticketType: user.ticketType
       },
       ticket
     });
