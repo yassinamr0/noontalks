@@ -65,7 +65,7 @@ export default function Ticket() {
   }
 
   // Determine which ticket design to use based on ticket type
- const ticketImage = user.ticketType === 'group' ? 'src/public/ticketdesign2.png' : 'src/public/ticketdesign.png';
+  const ticketImage = user.ticketType === 'group' ? '/ticketdesign2.png' : '/ticketdesign.png';
 
   return (
     <div className="min-h-screen animated-gradient">
@@ -94,7 +94,7 @@ export default function Ticket() {
                   <div 
                     className="absolute left-1/2 transform -translate-x-1/2" 
                     style={{ 
-                      top: 'calc(50% - -3mm)',
+                      top: 'calc(50% - -3mm)',  // Move down by 3mm (approximately 0.3cm)
                       transform: 'translate(-50%, -50%)'
                     }}
                   >
