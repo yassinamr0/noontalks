@@ -65,7 +65,7 @@ export default function Ticket() {
   }
 
   // Determine which ticket design to use based on ticket type
-  const ticketImage = user.ticketType === 'group' ? '/ticketdesign2.png' : '/ticketdesign.png';
+ const ticketImage = user.ticketType === 'group' ? 'src/public/ticketdesign2.png' : 'src/public/ticketdesign.png';
 
   return (
     <div className="min-h-screen animated-gradient">
