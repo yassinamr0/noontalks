@@ -11,6 +11,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  ticketType?: string;
   entries: number;
   createdAt: string;
   lastEntry?: string;
@@ -63,6 +64,9 @@ export default function Ticket() {
     );
   }
 
+  // Determine which ticket design to use based on ticket type
+  const ticketImage = user.ticketType === 'group' ? '/ticketdesign2.png' : '/ticketdesign.png';
+
   return (
     <div className="min-h-screen animated-gradient">
       <Navbar />
@@ -83,14 +87,14 @@ export default function Ticket() {
                 {/* Ticket with QR Code */}
                 <div className="relative">
                   <img
-                    src="/ticketdesign.png"
+                    src={ticketImage}
                     alt="Ticket Design"
                     className="w-full h-auto"
                   />
                   <div 
                     className="absolute left-1/2 transform -translate-x-1/2" 
                     style={{ 
-                      top: 'calc(50% - -3mm)',  // Move down by 3mm (approximately 0.3cm)
+                      top: 'calc(50% - -3mm)',
                       transform: 'translate(-50%, -50%)'
                     }}
                   >
@@ -115,6 +119,9 @@ export default function Ticket() {
                     <p className="text-purple-200">{user.phone}</p>
                   )}
                   <p className="text-sm text-purple-300 mt-2">
+                    Ticket Type: {user.ticketType === 'group' ? 'Group' : 'Single'}
+                  </p>
+                  <p className="text-sm text-purple-300">
                     Entries: {user.entries}
                   </p>
                   {user.lastEntry && (
