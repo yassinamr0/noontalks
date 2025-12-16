@@ -122,8 +122,8 @@
   background-position: top center;
   background-repeat: no-repeat;
   background-attachment: scroll;
-  min-height: 80vh;
-  width: 80vw;
+  min-height: 100vh;
+  width: 100vw;
 }
 
 .home-gradient {
@@ -133,13 +133,13 @@
   background-repeat: no-repeat;
   background-attachment: scroll;
   min-height: 100vh;
-  width: 80vw;
+  width: 100vw;
 }
 
 /* Prevent white spaces on zoom */
 html, body {
   overflow-x: hidden;
-  width: 100%;
+  width: 90%;
   margin: 0;
   padding: 0;
 }
