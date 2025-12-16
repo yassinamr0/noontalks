@@ -14,7 +14,7 @@ export default function Index() {
   return (
     <>
       <Navbar />
-      <div className="home-gradient" style={{ minHeight: '200vh' }}>
+      <div className="home-gradient" style={{ minHeight: '100vh' }}>
         <div className="container mx-auto px-4">
           {/* Center buttons with responsive positioning */}
           <div className="flex flex-col items-center space-y-4 button-container py-8">
