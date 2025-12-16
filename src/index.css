@@ -122,8 +122,8 @@
   background-position: top center;
   background-repeat: no-repeat;
   background-attachment: scroll;
-  min-height: 100vh;
-  width: 100vw;
+  min-height: 80vh;
+  width: 80vw;
 }
 
 .home-gradient {
