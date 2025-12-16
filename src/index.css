@@ -310,7 +310,7 @@ html, body {
 }
 
 /* Mobile responsive background scaling */
-@media (max-width: 768px) {
+@media (max-width: 700px) {
   .home-gradient {
     background-size: cover;
     background-position: center;
