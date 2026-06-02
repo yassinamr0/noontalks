@@ -22,8 +22,8 @@ export default function AdminLogin() {
       console.log('Session storage set, showing toast...');
       toast.success("Login successful!");
       
-      // Force page reload and redirect
-      window.location.replace("https://www.noon-talks.online/admin");
+      // Force page reload and redirect dynamically based on current domain
+window.location.replace("/admin");
       
     } catch (error) {
       console.error('Login error:', error);
