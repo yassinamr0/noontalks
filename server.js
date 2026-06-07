@@ -38,21 +38,52 @@ app.use((req, res, next) => {
   next();
 });
 
-// MongoDB connection
+// MongoDB connection management
 let isConnectedToMongo = false;
 
-if (process.env.MONGODB_URI) {
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    isConnectedToMongo = true;
+    return;
+  }
+
+  if (!process.env.MONGODB_URI) {
+    console.warn('MONGODB_URI not set in environment variables');
+    isConnectedToMongo = false;
+    return;
+  }
+
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
     console.log('Connected to MongoDB');
     isConnectedToMongo = true;
   } catch (err) {
     console.error('MongoDB connection error:', err);
     isConnectedToMongo = false;
+    throw err;
   }
-} else {
-  console.warn('MONGODB_URI not set in environment variables');
-}
+};
+
+// Initial connection attempt
+connectDB().catch(err => console.error('Initial DB connection failed:', err));
+
+// Middleware to ensure DB is connected
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('DB connection middleware error:', err);
+    // Don't block health/debug endpoints
+    if (req.path.startsWith('/api/health') || req.path.startsWith('/api/debug')) {
+      return next();
+    }
+    res.status(503).json({ message: 'Database connection not available', error: err.message });
+  }
+});
 
 // User schema - UPDATED WITH TICKET TYPE
 const userSchema = new mongoose.Schema({
