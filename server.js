@@ -125,6 +125,11 @@ const adminAuth = (req, res, next) => {
   next();
 };
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'NoonTalks API is running', status: 'ok' });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
