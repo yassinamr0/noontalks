@@ -17,6 +17,22 @@ interface User {
   lastEntry?: string;
 }
 
+const TICKET_LABELS: Record<string, string> = {
+  adult: 'Adult',
+  kids: '8-12 Year Old',
+  noon_students: 'Noon Students',
+  // legacy support
+  single: 'Single',
+  group: 'Group',
+};
+
+const getTicketImage = (ticketType?: string) => {
+  if (ticketType === 'noon_students') return '/ticketdesign3.png';
+  if (ticketType === 'kids') return '/ticketdesign2.png';
+  // adult, single (legacy), or default
+  return '/ticketdesign.png';
+};
+
 export default function Ticket() {
   const [user, setUser] = useState<User | null>(null);
   const [searchParams] = useSearchParams();
@@ -64,8 +80,8 @@ export default function Ticket() {
     );
   }
 
-  // Determine which ticket design to use based on ticket type
-  const ticketImage = user.ticketType === 'group' ? '/ticketdesign2.png' : '/ticketdesign.png';
+  const ticketImage = getTicketImage(user.ticketType);
+  const ticketLabel = TICKET_LABELS[user.ticketType || ''] || user.ticketType || 'Standard';
 
   return (
     <div className="min-h-screen animated-gradient">
@@ -94,7 +110,7 @@ export default function Ticket() {
                   <div 
                     className="absolute left-1/2 transform -translate-x-1/2" 
                     style={{ 
-                      top: 'calc(50% - -3mm)',  // Move down by 3mm (approximately 0.3cm)
+                      top: 'calc(50% - -3mm)',
                       transform: 'translate(-50%, -50%)'
                     }}
                   >
@@ -119,7 +135,7 @@ export default function Ticket() {
                     <p className="text-purple-200">{user.phone}</p>
                   )}
                   <p className="text-sm text-purple-300 mt-2">
-                    Ticket Type: {user.ticketType === 'group' ? 'Group' : 'Single'}
+                    Ticket Type: {ticketLabel}
                   </p>
                   <p className="text-sm text-purple-300">
                     Entries: {user.entries}
