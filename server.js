@@ -26,69 +26,50 @@ app.use(cors({
   credentials: true
 }));
 
-// OPTIONS handler for preflight requests
 app.options('*', cors());
-
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Request logging middleware - after JSON parsing
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
-
-// MongoDB connection management
-let isConnectedToMongo = false;
+// MongoDB Connection Caching
+let cachedConnection = null;
 
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
-    isConnectedToMongo = true;
-    return;
-  }
+  if (cachedConnection) return cachedConnection;
 
   if (!process.env.MONGODB_URI) {
-    console.warn('MONGODB_URI not set in environment variables');
-    isConnectedToMongo = false;
-    return;
+    throw new Error('MONGODB_URI is not defined');
   }
 
   try {
-    console.log('Attempting to connect to MongoDB...');
-    await mongoose.connect(process.env.MONGODB_URI, {
+    const opts = {
+      bufferCommands: false,
       serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
-    });
-    console.log('Connected to MongoDB successfully');
-    isConnectedToMongo = true;
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    isConnectedToMongo = false;
-    throw err;
+    };
+    cachedConnection = await mongoose.connect(process.env.MONGODB_URI, opts);
+    console.log('New MongoDB connection established');
+    return cachedConnection;
+  } catch (e) {
+    cachedConnection = null;
+    console.error('MongoDB connection error:', e);
+    throw e;
   }
 };
 
-// Initial connection attempt
-connectDB().catch(err => console.error('Initial DB connection failed:', err));
-
 // Middleware to ensure DB is connected
 app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/health') || req.path.startsWith('/api/debug')) {
+    return next();
+  }
   try {
     await connectDB();
     next();
   } catch (err) {
-    console.error('DB connection middleware error:', err);
-    // Don't block health/debug endpoints
-    if (req.path.startsWith('/api/health') || req.path.startsWith('/api/debug')) {
-      return next();
-    }
-    res.status(503).json({ message: 'Database connection not available', error: err.message });
+    res.status(503).json({ message: 'Database connection failed', error: err.message });
   }
 });
 
-// User schema - UPDATED WITH TICKET TYPE
-const userSchema = new mongoose.Schema({
+// Models - Use mongoose.models to prevent OverwriteModelError in serverless
+const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: String,
@@ -96,12 +77,9 @@ const userSchema = new mongoose.Schema({
   ticketType: { type: String, enum: ['single', 'group'], default: 'single' },
   attended: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
-});
+}));
 
-const User = mongoose.model('User', userSchema);
-
-// Ticket schema for unverified purchases
-const ticketSchema = new mongoose.Schema({
+const Ticket = mongoose.models.Ticket || mongoose.model('Ticket', new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, sparse: true },
   phone: String,
@@ -119,399 +97,127 @@ const ticketSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   verifiedAt: Date,
   createdAt: { type: Date, default: Date.now }
-});
+}));
 
-const Ticket = mongoose.model('Ticket', ticketSchema);
-
-// Configure multer for file uploads - use memory storage for Vercel
+// Multer setup
 const storage = multer.memoryStorage();
-
 const upload = multer({ 
   storage,
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image and PDF files are allowed'));
-    }
-  },
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// Admin token middleware
+// Admin auth
 const adminAuth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  console.log('Checking admin token:', token);
-  console.log('Expected token:', process.env.ADMIN_TOKEN);
-  
-  if (!token) {
-    console.log('No token provided');
-    return res.status(401).json({ message: 'No token provided' });
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    return res.status(401).json({ message: 'Unauthorized' });
   }
-  
-  if (token !== process.env.ADMIN_TOKEN) {
-    console.log('Invalid token');
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-  
-  console.log('Token valid, proceeding');
   next();
 };
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    mongoConnected: isConnectedToMongo,
-    timestamp: new Date().toISOString()
-  });
+// Endpoints
+app.get('/api/health', async (req, res) => {
+  const connected = mongoose.connection.readyState === 1;
+  res.json({ status: 'ok', mongoConnected: connected, timestamp: new Date().toISOString() });
 });
 
-// Fix database indexes (admin only)
-app.post('/api/admin/fix-indexes', adminAuth, async (req, res) => {
-  try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
-    // Drop the old index and recreate with sparse
-    await Ticket.collection.dropIndex('email_1').catch(() => {
-      // Index might not exist, that's ok
-    });
-
-    // Create new sparse index
-    await Ticket.collection.createIndex({ email: 1 }, { unique: true, sparse: true });
-
-    res.json({ 
-      message: 'Database indexes fixed successfully',
-      status: 'ok'
-    });
-  } catch (error) {
-    console.error('Error fixing indexes:', error);
-    res.status(500).json({ message: 'Error fixing indexes', error: error.message });
-  }
-});
-
-// Debug endpoint (temporary)
 app.get('/api/debug/env', (req, res) => {
   res.json({
     hasAdminToken: !!process.env.ADMIN_TOKEN,
-    hasAdminPassword: !!process.env.ADMIN_PASSWORD,
     hasMongoUri: !!process.env.MONGODB_URI,
-    nodeEnv: process.env.NODE_ENV,
-    mongoConnected: isConnectedToMongo
+    mongoConnected: mongoose.connection.readyState === 1
   });
 });
 
-// API Routes
 app.post('/api/admin/login', (req, res) => {
-  console.log('Login attempt:', { body: req.body });
-  try {
-    const { password } = req.body;
-    console.log('Password received:', password);
-    console.log('Expected password:', process.env.ADMIN_PASSWORD);
-    
-    if (!password) {
-      return res.status(400).json({ message: 'Password is required' });
-    }
-    
-    if (!process.env.ADMIN_PASSWORD) {
-      console.error('ADMIN_PASSWORD not set in environment variables');
-      return res.status(500).json({ message: 'Server configuration error' });
-    }
-    
-    if (password === process.env.ADMIN_PASSWORD) {
-      console.log('Password matched, sending token');
-      return res.json({ 
-        token: process.env.ADMIN_TOKEN,
-        message: 'Login successful' 
-      });
-    } else {
-      console.log('Password did not match');
-      return res.status(401).json({ message: 'Invalid password' });
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ 
-      message: 'Server error during login', 
-      error: error.message 
-    });
+  const { password } = req.body;
+  if (password === process.env.ADMIN_PASSWORD) {
+    return res.json({ token: process.env.ADMIN_TOKEN, message: 'Login successful' });
   }
+  res.status(401).json({ message: 'Invalid password' });
 });
 
-// Add user endpoint - UPDATED TO INCLUDE TICKET TYPE
-app.post('/api/admin/add-user', adminAuth, async (req, res) => {
-  try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
-    const { name, email, phone, ticketType } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User with this email already exists' });
-    }
-
-    const qrCode = Math.random().toString(36).substring(7);
-    const user = await User.create({ 
-      name, 
-      email, 
-      phone, 
-      qrCode,
-      ticketType: ticketType || 'single'
-    });
-    res.json(user);
-  } catch (error) {
-    console.error('Error adding user:', error);
-    res.status(500).json({ message: 'Server error while adding user', error: error.message });
-  }
-});
-
-// Get users endpoint
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
     const users = await User.find();
     res.json(users);
   } catch (error) {
-    console.error('Error getting users:', error);
-    res.status(500).json({ message: 'Server error while fetching users', error: error.message });
+    res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 });
 
-// Delete user endpoint
-app.delete('/api/admin/users/:userId', adminAuth, async (req, res) => {
+app.post('/api/tickets/purchase', upload.single('paymentProof'), async (req, res) => {
   try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
-    const { userId } = req.params;
-    
-    // Check if user exists
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Delete the user
-    await User.findByIdAndDelete(userId);
-    
-    // Also delete any associated ticket with the same email
-    await Ticket.deleteOne({ email: user.email });
-    
-    res.json({ 
-      success: true,
-      message: 'User deleted successfully' 
-    });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Server error while deleting user', 
-      error: error.message 
-    });
-  }
-});
-
-// Validate ticket endpoint
-app.post('/api/admin/validate', adminAuth, async (req, res) => {
-  try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ 
-        isValid: false,
-        message: 'Invalid ticket' 
-      });
-    }
-
-    if (user.attended) {
-      return res.status(400).json({ 
-        isValid: false,
-        message: 'User has already attended' 
-      });
-    }
-
-    user.attended = true;
-    await user.save();
-    res.json({ 
-      isValid: true,
-      user,
-      message: 'Ticket validated successfully' 
-    });
-  } catch (error) {
-    console.error('Error validating user:', error);
-    res.status(500).json({ 
-      isValid: false,
-      message: 'Server error while validating ticket', 
-      error: error.message 
-    });
-  }
-});
-
-// User login endpoint
-app.post('/api/user/login', async (req, res) => {
-  try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Server error during user login', error: error.message });
-  }
-});
-
-// Ticket purchase endpoint
-app.post('/api/tickets/purchase', (req, res, next) => {
-  upload.single('paymentProof')(req, res, (err) => {
-    if (err) {
-      console.error('Multer error:', err);
-      return res.status(400).json({ message: 'File upload error', error: err.message });
-    }
-    next();
-  });
-}, async (req, res) => {
-  try {
-    console.log('Ticket purchase request received');
-    console.log('File:', req.file);
-    console.log('Body:', req.body);
-
-    if (!isConnectedToMongo) {
-      console.error('MongoDB not connected');
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
-    if (!req.file) {
-      console.error('No file uploaded');
-      return res.status(400).json({ message: 'Payment proof is required' });
-    }
-
     const { name, email, phone, ticketType, paymentMethod } = req.body;
-    
-    console.log('Validating fields:', { name, email, ticketType, paymentMethod });
-
-    if (!name || !email || !ticketType) {
-      console.error('Missing required fields');
+    if (!name || !email || !ticketType || !req.file) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Check if email already exists in users
     const existingUser = await User.findOne({ email });
-    
-    if (existingUser) {
-      console.error('Email already registered as user');
-      return res.status(400).json({ message: 'Email already registered' });
-    }
+    if (existingUser) return res.status(400).json({ message: 'Email already registered' });
 
-    // Check for unverified tickets (not verified ones)
     const existingTicket = await Ticket.findOne({ email, isVerified: false });
-    
-    if (existingTicket) {
-      console.error('Email already has unverified ticket:', existingTicket._id);
-      return res.status(400).json({ message: 'Email already has a pending ticket. Please wait for verification or contact support.' });
-    }
+    if (existingTicket) return res.status(400).json({ message: 'Pending ticket already exists' });
 
-    // Convert file buffer to base64 for storage
     const fileBase64 = req.file.buffer.toString('base64');
     const fileData = `data:${req.file.mimetype};base64,${fileBase64}`;
 
-    const ticketData = {
-      name,
-      email,
-      phone,
-      ticketType,
-      paymentProof: fileData
-    };
+    const ticket = await Ticket.create({
+      name, email, phone, ticketType, paymentMethod, paymentProof: fileData
+    });
 
-    // Only add paymentMethod if it's not empty
-    if (paymentMethod && paymentMethod.trim()) {
-      ticketData.paymentMethod = paymentMethod;
-    }
-
-    try {
-      const ticket = await Ticket.create(ticketData);
-      res.json({ message: 'Ticket purchase submitted for verification', ticket });
-    } catch (dbError) {
-      // Handle duplicate key error from verified tickets
-      if (dbError.code === 11000 && dbError.keyPattern?.email) {
-        console.error('Email has verified ticket, deleting old verified ticket and creating new one');
-        // Delete the old verified ticket and create new one
-        await Ticket.deleteOne({ email, isVerified: true });
-        const ticket = await Ticket.create(ticketData);
-        res.json({ message: 'Ticket purchase submitted for verification', ticket });
-      } else {
-        throw dbError;
-      }
-    }
+    res.json({ message: 'Ticket purchase submitted', ticket });
   } catch (error) {
-    console.error('Error processing ticket purchase:', error);
-    res.status(500).json({ message: 'Error processing ticket purchase', error: error.message });
+    res.status(500).json({ message: 'Purchase error', error: error.message });
   }
 });
 
-// Get unverified tickets endpoint
+// User login
+app.post('/api/user/login', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Login error', error: error.message });
+  }
+});
+
+// Admin validate
+app.post('/api/admin/validate', adminAuth, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ isValid: false, message: 'Invalid ticket' });
+    if (user.attended) return res.status(400).json({ isValid: false, message: 'Already attended' });
+    
+    user.attended = true;
+    await user.save();
+    res.json({ isValid: true, user, message: 'Validated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Validation error', error: error.message });
+  }
+});
+
+// Admin tickets
 app.get('/api/admin/tickets', adminAuth, async (req, res) => {
   try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
     const tickets = await Ticket.find({ isVerified: false }).sort({ createdAt: -1 });
     res.json(tickets);
   } catch (error) {
-    console.error('Error fetching tickets:', error);
     res.status(500).json({ message: 'Error fetching tickets', error: error.message });
   }
 });
 
-// Verify ticket endpoint - UPDATED TO PASS TICKET TYPE
+// Admin verify ticket
 app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
   try {
-    if (!isConnectedToMongo) {
-      return res.status(503).json({ message: 'Database connection not available' });
-    }
-
     const ticket = await Ticket.findById(req.params.id);
-    if (!ticket) {
-      return res.status(404).json({ message: 'Ticket not found' });
-    }
+    if (!ticket || ticket.isVerified) return res.status(404).json({ message: 'Ticket not found or verified' });
 
-    if (ticket.isVerified) {
-      return res.status(400).json({ message: 'Ticket already verified' });
-    }
-
-    // Generate QR code for the user
     const qrCode = Math.random().toString(36).substring(7);
-
-    // Create user from ticket - INCLUDING TICKET TYPE
-    const user = new User({
+    const user = await User.create({
       name: ticket.name,
       email: ticket.email,
       phone: ticket.phone,
@@ -519,65 +225,24 @@ app.post('/api/admin/tickets/:id/verify', adminAuth, async (req, res) => {
       ticketType: ticket.ticketType
     });
 
-    await user.save();
-
-    // Mark ticket as verified
     ticket.isVerified = true;
     ticket.verifiedAt = new Date();
     await ticket.save();
 
-    res.json({ 
-      message: 'Ticket verified and user created',
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        qrCode: qrCode,
-        ticketType: user.ticketType
-      },
-      ticket
-    });
+    res.json({ message: 'Ticket verified', user });
   } catch (error) {
-    console.error('Error verifying ticket:', error);
-    res.status(500).json({ message: 'Error verifying ticket', error: error.message });
+    res.status(500).json({ message: 'Verification error', error: error.message });
   }
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Error handling middleware - before catch-all route
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  if (!res.headersSent) {
-    res.status(500).json({ message: 'Internal server error', error: err.message });
-  }
-});
-
-// Handle React routing - must be LAST after all API routes and error handling
+// SPA Routing
 app.get('*', (req, res) => {
-  try {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  } catch (err) {
-    console.error('Error serving index.html:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Global error handler for unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-// Export for Vercel
 export default app;
 
-// Start server if not in Vercel
 if (process.env.NODE_ENV !== 'production') {
   const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+  app.listen(port, () => console.log(`Server running on port ${port}`));
 }
