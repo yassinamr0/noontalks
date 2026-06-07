@@ -20,12 +20,29 @@ interface User {
   lastEntry?: string;
 }
 
+const TICKET_TYPE_LABELS: Record<string, string> = {
+  adult: 'Adult (1200 L.E)',
+  kids: '8-12 Year Old (600 L.E)',
+  noon_students: 'Noon Students (500 L.E)',
+  // legacy
+  single: 'Single (legacy)',
+  group: 'Group (legacy)',
+};
+
+const TICKET_BADGE_COLORS: Record<string, string> = {
+  adult: 'bg-blue-100 text-blue-800',
+  kids: 'bg-green-100 text-green-800',
+  noon_students: 'bg-purple-100 text-purple-800',
+  single: 'bg-blue-100 text-blue-800',
+  group: 'bg-purple-100 text-purple-800',
+};
+
 export default function Admin() {
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     phone: "",
-    ticketType: "single"
+    ticketType: "adult"
   });
   const [users, setUsers] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState<'users' | 'tickets'>('users');
@@ -76,10 +93,8 @@ export default function Admin() {
         return;
       }
 
-      // Add user to database
       const user = await addUser(newUser);
       
-      // Send welcome email
       try {
         await sendWelcomeEmail({
           to_email: user.email,
@@ -91,15 +106,13 @@ export default function Admin() {
         toast.error("User added but failed to send welcome email");
       }
       
-      // Reset form
       setNewUser({
         name: "",
         email: "",
         phone: "",
-        ticketType: "single"
+        ticketType: "adult"
       });
       
-      // Refresh user list
       const fetchedUsers = await getUsers();
       setUsers(fetchedUsers);
     } catch (error) {
@@ -124,18 +137,7 @@ export default function Admin() {
     navigate("/admin/login");
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const openTicket = (email: string) => {
-    // Open ticket in new tab
     const ticketUrl = `/ticket?email=${encodeURIComponent(email)}`;
     window.open(ticketUrl, '_blank');
   };
@@ -145,7 +147,6 @@ export default function Admin() {
       try {
         await deleteUser(userId);
         toast.success('User deleted successfully');
-        // Refresh the users list
         const fetchedUsers = await getUsers();
         setUsers(fetchedUsers);
       } catch (error) {
@@ -174,7 +175,6 @@ export default function Admin() {
             </Button>
           </div>
 
-          {/* Tabs */}
           <div className="bg-white rounded-lg shadow-xl overflow-hidden">
             <div className="flex border-b">
               <button
@@ -230,8 +230,9 @@ export default function Admin() {
                           onChange={(e) => setNewUser(prev => ({ ...prev, ticketType: e.target.value }))}
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
-                          <option value="single">Single Ticket</option>
-                          <option value="group">Group Ticket</option>
+                          <option value="adult">Adult Ticket (1200 L.E)</option>
+                          <option value="kids">8-12 Year Old Ticket (600 L.E)</option>
+                          <option value="noon_students">Noon Students Ticket (500 L.E)</option>
                         </select>
                       </div>
                       <Button 
@@ -265,11 +266,9 @@ export default function Admin() {
                               <td className="p-2">{user.phone || '-'}</td>
                               <td className="p-2">
                                 <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                  user.ticketType === 'group' 
-                                    ? 'bg-purple-100 text-purple-800' 
-                                    : 'bg-blue-100 text-blue-800'
+                                  TICKET_BADGE_COLORS[user.ticketType || ''] || 'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {user.ticketType === 'group' ? 'Group' : 'Single'}
+                                  {TICKET_TYPE_LABELS[user.ticketType || ''] || user.ticketType || '-'}
                                 </span>
                               </td>
                               <td className="p-2">{user.entries}</td>
