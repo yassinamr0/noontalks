@@ -4,8 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 
-type TicketType = 'single' | 'group' | null;
+type TicketType = 'adult' | 'kids' | 'noon_students' | null;
 type PaymentMethod = 'telda' | 'instapay' | null;
+
+const TICKET_CONFIG = {
+  adult: { label: 'Adult Ticket', price: '1200 L.E' },
+  kids: { label: '8-12 Year Old Ticket', price: '600 L.E' },
+  noon_students: { label: 'Noon Students Ticket', price: '500 L.E' },
+};
 
 export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<'select-ticket' | 'user-info'>('select-ticket');
@@ -101,13 +107,15 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
     }
   };
 
+  const selectedTicket = ticketType ? TICKET_CONFIG[ticketType] : null;
+
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
       {showTeldaQR && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowTeldaQR(false)}>
           <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl border-2 border-purple-400/60 rounded-3xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-center space-y-6">
-<h3 className="text-3xl font-bold text-white">Scan to Pay with Telda</h3>
+              <h3 className="text-3xl font-bold text-white">Scan to Pay with Telda</h3>
               <div className="bg-white p-4 rounded-2xl">
                 <img 
                   src="/teldacode.jpg" 
@@ -137,37 +145,46 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
               <h2 className="text-4xl font-bold text-white mb-2">Select Your Ticket</h2>
               <p className="text-purple-200 text-sm">Choose the ticket type that suits you best</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <Button
                 className="py-10 text-lg font-bold bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:via-purple-600 hover:to-purple-700 text-white transition-all duration-300 rounded-xl border-2 border-purple-400/60 hover:border-purple-300 shadow-lg hover:shadow-purple-500/50 hover:scale-105"
-                onClick={() => handleTicketSelect('single')}
+                onClick={() => handleTicketSelect('adult')}
               >
                 <div className="flex flex-col items-center">
-                  <span>Single Ticket</span>
-                  <span className="text-2xl font-bold mt-1">300 L.E</span>
+                  <span>Adult Ticket</span>
+                  <span className="text-2xl font-bold mt-1">1200 L.E</span>
                 </div>
               </Button>
               <Button
                 className="py-10 text-lg font-bold bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:via-purple-600 hover:to-purple-700 text-white transition-all duration-300 rounded-xl border-2 border-purple-400/60 hover:border-purple-300 shadow-lg hover:shadow-purple-500/50 hover:scale-105"
-                onClick={() => handleTicketSelect('group')}
+                onClick={() => handleTicketSelect('kids')}
               >
                 <div className="flex flex-col items-center">
-                  <span>Group Ticket</span>
-                  <span className="text-2xl font-bold mt-1">1000 L.E</span>
+                  <span>8-12 Year Old Ticket</span>
+                  <span className="text-2xl font-bold mt-1">600 L.E</span>
+                </div>
+              </Button>
+              <Button
+                className="py-10 text-lg font-bold bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 hover:from-purple-500 hover:via-purple-600 hover:to-purple-700 text-white transition-all duration-300 rounded-xl border-2 border-purple-400/60 hover:border-purple-300 shadow-lg hover:shadow-purple-500/50 hover:scale-105"
+                onClick={() => handleTicketSelect('noon_students')}
+              >
+                <div className="flex flex-col items-center">
+                  <span>Noon Students Ticket</span>
+                  <span className="text-2xl font-bold mt-1">500 L.E</span>
                 </div>
               </Button>
             </div>
           </div>
         )}
 
-        {step === 'user-info' && (
+        {step === 'user-info' && selectedTicket && (
           <div className="space-y-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-white mb-2">
-                {ticketType === 'single' ? 'Single Ticket' : 'Group Ticket'}
+                {selectedTicket.label}
               </h2>
               <p className="text-purple-300 text-lg font-semibold">
-                {ticketType === 'single' ? '300 L.E' : '1000 L.E'}
+                {selectedTicket.price}
               </p>
             </div>
 
