@@ -7,11 +7,11 @@ interface QRCodeProps {
 
 const getQRSize = () => {
   const width = window.innerWidth;
-  // Scaled down by 50% from original
-  if (width < 360) return 35; // Very small phones
-  if (width < 430) return 40; // Small phones
-  if (width < 480) return 45; // Medium phones
-  if (width < 768) return 52; // Large phones/small tablets
+  // Drastically scaled down for mobile, normal size for desktop
+  if (width < 360) return 25; // Very small phones
+  if (width < 430) return 28; // Small phones
+  if (width < 480) return 32; // Medium phones
+  if (width < 768) return 38; // Large phones/small tablets
   return 97; // Tablets and desktop
 };
 

@@ -40,7 +40,7 @@ const Navbar = () => {
           </Link>
 
           {/* Countdown in the middle */}
-          <div className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-gradient-to-r from-purple-900/40 to-purple-800/40 backdrop-blur-md rounded-full border border-purple-500/30 text-xs sm:text-sm">
+          <div className="navbar-glass flex items-center gap-2 px-2 sm:px-4 py-2 backdrop-blur-md rounded-full border border-purple-500/30 text-xs sm:text-sm">
             <div className="flex gap-1 sm:gap-3 font-bold">
               <div className="text-center">
                 <div className="text-cyan-400 text-sm sm:text-lg leading-none">{timeLeft.days}</div>
