@@ -149,16 +149,16 @@ html, body {
 
 /* Countdown styles */
 .countdown-container {
-  margin-top: 2rem;
-  padding: 2rem 1rem;
+  margin-top: 1rem;
+  padding: 1.5rem 1rem;
   text-align: center;
 }
 
 .countdown-title {
-  font-size: 2.5rem;
+  font-size: 1.875rem;
   font-weight: bold;
   color: #fff;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
   animation: glow 2s ease-in-out infinite alternate;
 }
@@ -166,17 +166,18 @@ html, body {
 .countdown-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 900px;
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .countdown-item {
-  background: rgba(58, 31, 73, 0.6);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(34, 211, 238, 0.3);
+  background: rgba(58, 31, 73, 0.7);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(34, 211, 238, 0.4);
   border-radius: 1rem;
-  padding: 2rem 1rem;
+  padding: 1.5rem 0.75rem;
   transition: all 0.3s ease;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -188,7 +189,7 @@ html, body {
 }
 
 .countdown-number {
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: bold;
   color: #22d3ee;
   text-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
@@ -196,10 +197,10 @@ html, body {
 }
 
 .countdown-label {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: #fff;
-  margin-top: 0.5rem;
-  letter-spacing: 2px;
+  margin-top: 0.25rem;
+  letter-spacing: 1px;
   font-weight: 600;
 }
 
@@ -258,6 +259,52 @@ html, body {
 
 .animated-border-button {
   animation: animatedBorder 3s ease-in-out infinite;
+}
+
+/* Entrance Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.8s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 @media (max-width: 768px) {
