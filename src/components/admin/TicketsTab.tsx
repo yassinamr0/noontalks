@@ -9,11 +9,19 @@ interface Ticket {
   name: string;
   email: string;
   phone?: string;
-  ticketType: 'single' | 'group';
+  ticketType: 'adult' | 'kids' | 'noon_students' | 'single' | 'group';
   paymentMethod: 'telda' | 'instapay';
   paymentProof: string;
   createdAt: string;
 }
+
+const TICKET_TYPE_LABELS: Record<string, string> = {
+  adult: 'Adult (1200 L.E)',
+  kids: '8-12 Year Old (600 L.E)',
+  noon_students: 'Noon Students (500 L.E)',
+  single: 'Single (legacy)',
+  group: 'Group (legacy)',
+};
 
 export default function TicketsTab() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -64,7 +72,6 @@ export default function TicketsTab() {
 
       const data = await response.json();
       
-      // Send welcome email
       try {
         await sendWelcomeEmail({
           to_email: data.user.email,
@@ -76,7 +83,6 @@ export default function TicketsTab() {
         toast.success('Ticket verified but failed to send email');
       }
 
-      // Remove the verified ticket from the list
       setTickets(tickets.filter(ticket => ticket._id !== ticketId));
     } catch (error) {
       console.error('Error verifying ticket:', error);
@@ -121,7 +127,9 @@ export default function TicketsTab() {
                       <td className="py-2 px-2">{ticket.name}</td>
                       <td className="py-2 px-2">{ticket.email}</td>
                       <td className="py-2 px-2">{ticket.phone || '-'}</td>
-                      <td className="py-2 px-2 capitalize">{ticket.ticketType}</td>
+                      <td className="py-2 px-2">
+                        {TICKET_TYPE_LABELS[ticket.ticketType] || ticket.ticketType}
+                      </td>
                       <td className="py-2 px-2 capitalize">{ticket.paymentMethod}</td>
                       <td className="py-2 px-2 text-xs">
                         {new Date(ticket.createdAt).toLocaleDateString()}
