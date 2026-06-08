@@ -140,6 +140,14 @@
   background-color: #1a0f2e;
 }
 
+body {
+  background-color: #1a0f2e;
+}
+
+#root {
+  background-color: #1a0f2e;
+}
+
 /* Prevent white spaces on zoom */
 html, body {
   overflow-x: hidden;

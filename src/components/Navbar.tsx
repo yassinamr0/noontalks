@@ -40,26 +40,26 @@ const Navbar = () => {
           </Link>
 
           {/* Countdown in the middle */}
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-900/40 to-purple-800/40 backdrop-blur-md rounded-full border border-purple-500/30">
-            <div className="flex gap-3 text-sm font-bold">
+          <div className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-gradient-to-r from-purple-900/40 to-purple-800/40 backdrop-blur-md rounded-full border border-purple-500/30 text-xs sm:text-sm">
+            <div className="flex gap-1 sm:gap-3 font-bold">
               <div className="text-center">
-                <div className="text-cyan-400 text-lg leading-none">{timeLeft.days}</div>
-                <div className="text-purple-300 text-xs">Days</div>
+                <div className="text-cyan-400 text-sm sm:text-lg leading-none">{timeLeft.days}</div>
+                <div className="text-purple-300 text-xs hidden sm:block">Days</div>
               </div>
-              <div className="text-cyan-400">:</div>
+              <div className="text-cyan-400 text-xs sm:text-base">:</div>
               <div className="text-center">
-                <div className="text-cyan-400 text-lg leading-none">{String(timeLeft.hours).padStart(2, '0')}</div>
-                <div className="text-purple-300 text-xs">Hrs</div>
+                <div className="text-cyan-400 text-sm sm:text-lg leading-none">{String(timeLeft.hours).padStart(2, '0')}</div>
+                <div className="text-purple-300 text-xs hidden sm:block">Hrs</div>
               </div>
-              <div className="text-cyan-400">:</div>
+              <div className="text-cyan-400 text-xs sm:text-base">:</div>
               <div className="text-center">
-                <div className="text-cyan-400 text-lg leading-none">{String(timeLeft.minutes).padStart(2, '0')}</div>
-                <div className="text-purple-300 text-xs">Min</div>
+                <div className="text-cyan-400 text-sm sm:text-lg leading-none">{String(timeLeft.minutes).padStart(2, '0')}</div>
+                <div className="text-purple-300 text-xs hidden sm:block">Min</div>
               </div>
-              <div className="text-cyan-400">:</div>
+              <div className="text-cyan-400 text-xs sm:text-base">:</div>
               <div className="text-center">
-                <div className="text-cyan-400 text-lg leading-none">{String(timeLeft.seconds).padStart(2, '0')}</div>
-                <div className="text-purple-300 text-xs">Sec</div>
+                <div className="text-cyan-400 text-sm sm:text-lg leading-none">{String(timeLeft.seconds).padStart(2, '0')}</div>
+                <div className="text-purple-300 text-xs hidden sm:block">Sec</div>
               </div>
             </div>
           </div>

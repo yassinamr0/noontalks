@@ -158,7 +158,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
             </div>
 
             <div className="space-y-4">
-              <Label className="text-white font-bold text-base">Payment Method (Optional)</Label>
+              <Label className="text-white font-bold text-base">Payment Method</Label>
               <div className="flex gap-4">
                 <button
                   type="button"
@@ -176,9 +176,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
                   />
                 </button>
               </div>
-              <p className="text-xs text-purple-300">
-                Click to open Instapay (optional - you can proceed without selecting)
-              </p>
+
             </div>
 
             <div className="space-y-5">
