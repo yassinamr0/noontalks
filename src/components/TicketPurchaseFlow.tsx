@@ -107,7 +107,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
-      <div className="glass-gradient backdrop-blur-xl border border-purple-400/40 rounded-3xl p-8 shadow-2xl">
+      <div className="bg-gradient-to-br from-purple-900/90 to-purple-800/90 backdrop-blur-xl border border-purple-400/40 rounded-3xl p-8 shadow-2xl">
         {step === 'select-ticket' && (
           <div className="space-y-8">
             <div className="text-center">
