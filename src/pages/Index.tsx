@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import Countdown from "@/components/Countdown";
 import { useState } from 'react';
 import TicketPurchaseFlow from "@/components/TicketPurchaseFlow";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -13,7 +12,7 @@ export default function Index() {
   return (
     <>
       <Navbar />
-      <div className="home-gradient w-full">
+      <div className="home-gradient w-full min-h-screen">
         <div className="w-full px-4 py-8 flex flex-col items-center gap-6">
           
           {/* 1. Main Group Picture - Centered at top with animation */}
@@ -86,11 +85,6 @@ export default function Index() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* 5. Event Countdown - At Bottom */}
-          <div className="w-full animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <Countdown />
           </div>
 
           {/* Bottom spacing */}

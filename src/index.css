@@ -132,11 +132,12 @@
   background-image: url('/season2-bg.png');
   background-size: 100% auto;
   background-position: top center;
-  background-repeat: no-repeat;
+  background-repeat: repeat-y;
   background-attachment: scroll;
   width: 100%;
   min-height: 100vh;
   position: relative;
+  background-color: #1a0f2e;
 }
 
 /* Prevent white spaces on zoom */
