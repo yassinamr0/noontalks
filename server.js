@@ -74,7 +74,7 @@ const User = mongoose.models.User || mongoose.model('User', new mongoose.Schema(
   email: { type: String, required: true, unique: true },
   phone: String,
   qrCode: String,
-  ticketType: { type: String, enum: ['single', 'group'], default: 'single' },
+  ticketType: { type: String, enum: ['adult', 'kids', 'noon_students', 'single', 'group'], default: 'adult' },
   attended: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 }));
@@ -83,7 +83,7 @@ const Ticket = mongoose.models.Ticket || mongoose.model('Ticket', new mongoose.S
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, sparse: true },
   phone: String,
-  ticketType: { type: String, enum: ['single', 'group'], required: true },
+  ticketType: { type: String, enum: ['adult', 'kids', 'noon_students', 'single', 'group'], required: true },
   paymentMethod: { 
     type: String, 
     enum: {
@@ -137,12 +137,68 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ message: 'Invalid password' });
 });
 
+// Add user endpoint
+app.post('/api/admin/add-user', adminAuth, async (req, res) => {
+  try {
+    const { name, email, phone, ticketType } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    const qrCode = Math.random().toString(36).substring(7);
+    const user = await User.create({ 
+      name, 
+      email, 
+      phone, 
+      qrCode,
+      ticketType: ticketType || 'adult'
+    });
+    res.json(user);
+  } catch (error) {
+    console.error('Error adding user:', error);
+    res.status(500).json({ message: 'Server error while adding user', error: error.message });
+  }
+});
+
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users', error: error.message });
+  }
+});
+
+// Delete user endpoint
+app.delete('/api/admin/users/:userId', adminAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await User.findByIdAndDelete(userId);
+    // Also delete any associated ticket with the same email
+    await Ticket.deleteOne({ email: user.email });
+    
+    res.json({ 
+      success: true,
+      message: 'User deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while deleting user', 
+      error: error.message 
+    });
   }
 });
 
@@ -207,6 +263,21 @@ app.get('/api/admin/tickets', adminAuth, async (req, res) => {
     res.json(tickets);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching tickets', error: error.message });
+  }
+});
+
+// Delete unverified ticket endpoint
+app.delete('/api/admin/tickets/:id', adminAuth, async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+    await Ticket.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Ticket deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting ticket:', error);
+    res.status(500).json({ message: 'Error deleting ticket', error: error.message });
   }
 });
 

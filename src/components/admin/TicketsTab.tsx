@@ -28,6 +28,7 @@ export default function TicketsTab() {
   const [loading, setLoading] = useState(true);
   const [viewingProof, setViewingProof] = useState<{ url: string; name: string } | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTickets();
@@ -92,6 +93,34 @@ export default function TicketsTab() {
     }
   };
 
+  const handleDelete = async (ticketId: string) => {
+    if (!window.confirm('Are you sure you want to delete this unverified ticket?')) {
+      return;
+    }
+
+    setDeletingId(ticketId);
+    try {
+      const response = await fetch(`/api/admin/tickets/${ticketId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('adminToken')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete ticket');
+      }
+
+      toast.success('Ticket deleted successfully');
+      setTickets(tickets.filter(ticket => ticket._id !== ticketId));
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      toast.error('Failed to delete ticket');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (loading) {
     return <div className="p-4 text-center">Loading tickets...</div>;
   }
@@ -147,9 +176,16 @@ export default function TicketsTab() {
                         <Button
                           className="text-xs"
                           onClick={() => handleVerify(ticket._id)}
-                          disabled={verifyingId === ticket._id}
+                          disabled={verifyingId === ticket._id || deletingId === ticket._id}
                         >
                           {verifyingId === ticket._id ? 'Verifying...' : 'Verify'}
+                        </Button>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white text-xs"
+                          onClick={() => handleDelete(ticket._id)}
+                          disabled={verifyingId === ticket._id || deletingId === ticket._id}
+                        >
+                          {deletingId === ticket._id ? 'Deleting...' : 'Delete'}
                         </Button>
                       </td>
                     </tr>
