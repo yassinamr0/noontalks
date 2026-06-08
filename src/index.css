@@ -94,29 +94,106 @@
   }
 }
 
+/* ---------------------------
+   Keyframes (optimized)
+   --------------------------- */
+
 @keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @keyframes homeGradient {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* Slightly slower, less frequent pulses for lower CPU/GPU usage */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.88; transform: translateY(-4px); }
+}
+
+/* Glow reduced intensity and slower */
+@keyframes glow {
+  from { text-shadow: 0 0 12px rgba(34, 211, 238, 0.35); }
+  to { text-shadow: 0 0 22px rgba(34, 211, 238, 0.55); }
+}
+
+/* Replace heavy 3D rotate with scaleY flip for better performance */
+@keyframes numberFlip {
+  0% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(0.05); opacity: 0.6; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
+/* Glass gradient animation kept but eased and slowed */
+@keyframes animatedGlassGradient {
   0% {
-    background-position: 0% 0%;
+    background: linear-gradient(135deg, rgba(88, 44, 106, 0.36) 0%, rgba(58, 31, 72, 0.28) 100%);
   }
   50% {
-    background-position: 100% 100%;
+    background: linear-gradient(135deg, rgba(108, 54, 126, 0.44) 0%, rgba(78, 41, 92, 0.34) 100%);
   }
   100% {
-    background-position: 0% 0%;
+    background: linear-gradient(135deg, rgba(88, 44, 106, 0.36) 0%, rgba(58, 31, 72, 0.28) 100%);
   }
 }
+
+/* Navbar gradient animation - slower and less frequent */
+@keyframes navbarGradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Animated border: reduce box-shadow intensity and animate transform instead of heavy shadow changes */
+@keyframes animatedBorder {
+  0% {
+    background-position: 0% 50%;
+    transform: translateY(0);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.28);
+  }
+  50% {
+    background-position: 100% 50%;
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.36);
+  }
+  100% {
+    background-position: 0% 50%;
+    transform: translateY(0);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.28);
+  }
+}
+
+/* Entrance Animations (kept short and simple) */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Marquee: animate full width shift. Use -50% when track is 200% wide (common pattern when duplicating items in HTML). */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Floating Animation (subtle) */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ---------------------------
+   Core styles
+   --------------------------- */
 
 .animated-gradient {
   background-image: url('/season2-bg2.png');
@@ -142,6 +219,8 @@
 
 body {
   background-color: #3A1F48;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -169,7 +248,8 @@ html, body {
   color: #fff;
   margin-bottom: 1.5rem;
   text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
-  animation: glow 2s ease-in-out infinite alternate;
+  animation: glow 3s ease-in-out infinite alternate;
+  will-change: text-shadow;
 }
 
 .countdown-grid {
@@ -183,26 +263,29 @@ html, body {
 
 .countdown-item {
   background: rgba(58, 31, 73, 0.7);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(34, 211, 238, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(34, 211, 238, 0.32);
   border-radius: 1rem;
   padding: 1.5rem 0.75rem;
-  transition: all 0.3s ease;
-  animation: pulse 2s ease-in-out infinite;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+  animation: pulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 .countdown-item:hover {
-  transform: translateY(-10px);
-  border-color: rgba(34, 211, 238, 0.8);
-  box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+  transform: translateY(-8px);
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 8px 20px rgba(34, 211, 238, 0.18);
 }
 
 .countdown-number {
   font-size: 3rem;
   font-weight: bold;
   color: #22d3ee;
-  text-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
-  animation: numberFlip 1s ease-in-out;
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.45);
+  animation: numberFlip 0.9s ease-in-out;
+  will-change: transform, opacity;
 }
 
 .countdown-label {
@@ -213,129 +296,25 @@ html, body {
   font-weight: 600;
 }
 
-@keyframes glow {
-  from {
-    text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
-  }
-  to {
-    text-shadow: 0 0 30px rgba(34, 211, 238, 0.8), 0 0 40px rgba(34, 211, 238, 0.6);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes numberFlip {
-  0% {
-    transform: rotateX(0deg);
-  }
-  50% {
-    transform: rotateX(90deg);
-  }
-  100% {
-    transform: rotateX(0deg);
-  }
-}
-
-@keyframes animatedGlassGradient {
-  0% {
-    background: linear-gradient(135deg, rgba(88, 44, 106, 0.4) 0%, rgba(58, 31, 72, 0.3) 100%);
-  }
-  50% {
-    background: linear-gradient(135deg, rgba(108, 54, 126, 0.5) 0%, rgba(78, 41, 92, 0.4) 100%);
-  }
-  100% {
-    background: linear-gradient(135deg, rgba(88, 44, 106, 0.4) 0%, rgba(58, 31, 72, 0.3) 100%);
-  }
-}
-
-@keyframes navbarGradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes animatedBorder {
-  0% {
-    background-position: 0% 50%;
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.1);
-  }
-  25% {
-    background-position: 100% 50%;
-    box-shadow: 0 0 30px rgba(34, 211, 238, 0.7), inset 0 0 20px rgba(34, 211, 238, 0.2);
-  }
-  50% {
-    background-position: 100% 50%;
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.1);
-  }
-  75% {
-    background-position: 0% 50%;
-    box-shadow: 0 0 30px rgba(34, 211, 238, 0.7), inset 0 0 20px rgba(34, 211, 238, 0.2);
-  }
-  100% {
-    background-position: 0% 50%;
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.1);
-  }
-}
-
+/* Animated glass gradient and navbar */
 .animated-border-button {
-  animation: animatedBorder 3s ease-in-out infinite;
+  animation: animatedBorder 3.2s ease-in-out infinite;
+  will-change: transform, box-shadow, background-position;
 }
 
 .glass-gradient {
-  animation: animatedGlassGradient 4s ease-in-out infinite;
+  animation: animatedGlassGradient 5s ease-in-out infinite;
+  will-change: background;
 }
 
 .navbar-glass {
   background: linear-gradient(90deg, rgba(88, 44, 106, 0.5), rgba(108, 54, 126, 0.6), rgba(88, 44, 106, 0.5));
   background-size: 200% 100%;
-  animation: navbarGradientAnimation 4s ease-in-out infinite;
+  animation: navbarGradientAnimation 6s ease-in-out infinite;
+  will-change: background-position;
 }
 
 /* Entrance Animations */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
 .animate-fade-in-down {
   animation: fadeInDown 0.8s ease-out forwards;
 }
@@ -346,20 +325,14 @@ html, body {
 }
 
 /* Floating Animation */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: float 3.5s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* Marquee Styles */
+/* Important: For smooth marquee, duplicate the content in HTML (two identical sets) or ensure the track is wide enough.
+   CSS assumes the track contains duplicated items and uses translateX(-50%) to loop seamlessly. */
 .marquee-container {
   width: 100%;
   overflow: hidden;
@@ -370,7 +343,9 @@ html, body {
   display: flex;
   gap: 2rem;
   animation: marquee 20s linear infinite;
-  width: fit-content;
+  min-width: 200%;
+  align-items: center;
+  will-change: transform;
 }
 
 .marquee-item {
@@ -388,61 +363,53 @@ html, body {
   object-fit: contain;
 }
 
+/* Responsive marquee tweaks */
 @media (max-width: 768px) {
-  .marquee-item {
-    width: 200px;
-  }
-  
-  .marquee-track {
-    gap: 1.5rem;
-    animation: marquee 15s linear infinite;
-  }
+  .marquee-item { width: 200px; }
+  .marquee-track { gap: 1.5rem; animation: marquee 15s linear infinite; }
 }
 
 @media (max-width: 480px) {
-  .marquee-item {
-    width: 150px;
-  }
-  
-  .marquee-track {
-    gap: 1rem;
-    animation: marquee 12s linear infinite;
-  }
+  .marquee-item { width: 150px; }
+  .marquee-track { gap: 1rem; animation: marquee 12s linear infinite; }
 }
 
+/* Responsive countdown */
 @media (max-width: 768px) {
-  .countdown-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-  
-  .countdown-number {
-    font-size: 2.5rem;
-  }
-  
-  .countdown-title {
-    font-size: 1.5rem;
-  }
-  
-  .countdown-item {
-    padding: 1.5rem 0.5rem;
-  }
+  .countdown-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .countdown-number { font-size: 2.5rem; }
+  .countdown-title { font-size: 1.5rem; }
+  .countdown-item { padding: 1.5rem 0.5rem; }
 }
 
 /* Mobile responsive background scaling */
 @media (max-width: 720px) {
-  .home-gradient {
-    background-size: 100% auto;
-    background-position: top center;
-    background-attachment: scroll;
-  }
-  
-  .animated-gradient {
-    background-size: 100% auto;
-    background-position: top center;
+  .home-gradient { background-size: 100% auto; background-position: top center; background-attachment: scroll; }
+  .animated-gradient { background-size: 100% auto; background-position: top center; }
+}
+
+/* Accessibility & performance: respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .animated-border-button,
+  .glass-gradient,
+  .navbar-glass,
+  .animate-float,
+  .countdown-item,
+  .countdown-title,
+  .countdown-number {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
+/* Subtle performance hints for the browser */
+* {
+  /* Avoid forcing layout changes; keep this minimal */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tailwind base application */
 @layer base {
   * {
     @apply border-border;
