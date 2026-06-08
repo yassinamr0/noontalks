@@ -44,7 +44,7 @@ export default function Ticket() {
       try {
         if (!email) {
           toast.error("No email provided");
-          window.location.replace("https://www.noon-talks.online");
+          window.location.href = "/";
           return;
         }
 
@@ -57,7 +57,7 @@ export default function Ticket() {
         } else {
           toast.error("Failed to fetch ticket");
         }
-        window.location.replace("https://www.noon-talks.online");
+        window.location.href = "/";
       }
     };
 
@@ -66,7 +66,7 @@ export default function Ticket() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("currentUser");
-    window.location.replace("https://www.noon-talks.online");
+    window.location.href = "/";
   };
 
   if (!user) {

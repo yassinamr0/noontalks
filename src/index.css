@@ -137,15 +137,15 @@
   width: 100%;
   min-height: 100vh;
   position: relative;
-  background-color: #1a0f2e;
+  background-color: #3A1F48;
 }
 
 body {
-  background-color: #1a0f2e;
+  background-color: #3A1F48;
 }
 
 #root {
-  background-color: #1a0f2e;
+  background-color: #3A1F48;
 }
 
 /* Prevent white spaces on zoom */
@@ -243,6 +243,18 @@ html, body {
   }
 }
 
+@keyframes animatedGlassGradient {
+  0% {
+    background: linear-gradient(135deg, rgba(88, 44, 106, 0.4) 0%, rgba(58, 31, 72, 0.3) 100%);
+  }
+  50% {
+    background: linear-gradient(135deg, rgba(108, 54, 126, 0.5) 0%, rgba(78, 41, 92, 0.4) 100%);
+  }
+  100% {
+    background: linear-gradient(135deg, rgba(88, 44, 106, 0.4) 0%, rgba(58, 31, 72, 0.3) 100%);
+  }
+}
+
 @keyframes animatedBorder {
   0% {
     background-position: 0% 50%;
@@ -268,6 +280,10 @@ html, body {
 
 .animated-border-button {
   animation: animatedBorder 3s ease-in-out infinite;
+}
+
+.glass-gradient {
+  animation: animatedGlassGradient 4s ease-in-out infinite;
 }
 
 /* Entrance Animations */
