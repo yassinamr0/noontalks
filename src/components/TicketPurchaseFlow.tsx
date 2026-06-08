@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 
 type TicketType = 'adult' | 'kids' | 'noon_students' | null;
-type PaymentMethod = 'telda' | 'instapay' | null;
+type PaymentMethod = 'instapay' | null;
 
 const TICKET_CONFIG = {
   adult: { label: 'Adult Ticket', price: '1200 L.E' },
@@ -25,8 +25,6 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [showTeldaQR, setShowTeldaQR] = useState(false);
-
   const handleTicketSelect = (type: TicketType) => {
     setTicketType(type);
     setStep('user-info');
@@ -35,9 +33,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
   const handlePaymentSelect = (method: PaymentMethod) => {
     setPaymentMethod(method);
     
-    if (method === 'telda') {
-      setShowTeldaQR(true);
-    } else if (method === 'instapay') {
+    if (method === 'instapay') {
       const isAndroid = /Android/i.test(navigator.userAgent);
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       
@@ -82,7 +78,7 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
       formDataToSend.append('email', formData.email);
       formDataToSend.append('phone', formData.phone);
       formDataToSend.append('ticketType', ticketType || '');
-      formDataToSend.append('paymentMethod', paymentMethod || '');
+      formDataToSend.append('paymentMethod', paymentMethod || 'instapay');
       if (formData.paymentProof) {
         formDataToSend.append('paymentProof', formData.paymentProof);
       }
@@ -111,33 +107,6 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
-      {showTeldaQR && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowTeldaQR(false)}>
-          <div className="bg-gradient-to-br from-purple-900/95 to-purple-800/95 backdrop-blur-xl border-2 border-purple-400/60 rounded-3xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="text-center space-y-6">
-              <h3 className="text-3xl font-bold text-white">Scan to Pay with Telda</h3>
-              <div className="bg-white p-4 rounded-2xl">
-                <img 
-                  src="/teldacode.jpg" 
-                  alt="Telda QR Code" 
-                  className="w-full h-auto"
-                />
-              </div>
-              <div className="space-y-2">
-                <p className="text-purple-200 text-sm">Send payment to:</p>
-                <p className="text-2xl font-bold text-white">@jamelakhazbakk</p>
-              </div>
-              <Button
-                onClick={() => setShowTeldaQR(false)}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 transition-all duration-300 border-2 border-purple-400/60 rounded-lg shadow-lg hover:shadow-purple-500/50"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <div className="bg-gradient-to-br from-purple-900/90 to-purple-800/90 backdrop-blur-xl border border-purple-400/40 rounded-3xl p-8 shadow-2xl">
         {step === 'select-ticket' && (
           <div className="space-y-8">
@@ -189,23 +158,8 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
             </div>
 
             <div className="space-y-4">
-              <Label className="text-white font-bold text-base">Select Payment Method</Label>
+              <Label className="text-white font-bold text-base">Payment Method (Optional)</Label>
               <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => handlePaymentSelect('telda')}
-                  className={`flex-1 p-5 rounded-xl transition-all duration-300 border-2 backdrop-blur-sm ${
-                    paymentMethod === 'telda'
-                      ? 'border-purple-300 bg-purple-500/30 shadow-lg shadow-purple-500/30'
-                      : 'border-purple-500/40 hover:border-purple-400 hover:bg-purple-500/10'
-                  }`}
-                >
-                  <img 
-                    src="/Telda.jpg" 
-                    alt="Telda" 
-                    className="h-14 w-full object-contain"
-                  />
-                </button>
                 <button
                   type="button"
                   onClick={() => handlePaymentSelect('instapay')}
@@ -222,6 +176,9 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
                   />
                 </button>
               </div>
+              <p className="text-xs text-purple-300">
+                Click to open Instapay (optional - you can proceed without selecting)
+              </p>
             </div>
 
             <div className="space-y-5">
