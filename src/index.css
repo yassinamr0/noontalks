@@ -139,21 +139,6 @@
   position: relative;
 }
 
-/* Design Canvas - Maintains aspect ratio and scales perfectly */
-.design-canvas {
-  position: relative;
-  width: 100%;
-  max-width: 1920px;
-  margin: 0 auto;
-  aspect-ratio: 1920 / 3361;
-}
-
-/* Absolutely positioned elements within design canvas */
-.design-element {
-  position: absolute;
-  transform-origin: top left;
-}
-
 /* Prevent white spaces on zoom */
 html, body {
   overflow-x: hidden;
@@ -164,7 +149,7 @@ html, body {
 
 /* Countdown styles */
 .countdown-container {
-  margin-top: 0;
+  margin-top: 2rem;
   padding: 2rem 1rem;
   text-align: center;
 }
