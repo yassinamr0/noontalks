@@ -134,9 +134,24 @@
   background-position: top center;
   background-repeat: no-repeat;
   background-attachment: scroll;
-  min-height: 100vh;
   width: 100%;
+  min-height: 100vh;
   position: relative;
+}
+
+/* Design Canvas - Maintains aspect ratio and scales perfectly */
+.design-canvas {
+  position: relative;
+  width: 100%;
+  max-width: 1920px;
+  margin: 0 auto;
+  aspect-ratio: 1920 / 3361;
+}
+
+/* Absolutely positioned elements within design canvas */
+.design-element {
+  position: absolute;
+  transform-origin: top left;
 }
 
 /* Prevent white spaces on zoom */
@@ -147,20 +162,11 @@ html, body {
   padding: 0;
 }
 
-
-
 /* Countdown styles */
 .countdown-container {
-  margin-top: 4rem;
-  padding: 3rem 2rem;
+  margin-top: 0;
+  padding: 2rem 1rem;
   text-align: center;
-}
-
-/* Desktop countdown positioning - move below button */
-@media (min-width: 769px) {
-  .countdown-container {
-    margin-top: 6rem;
-  }
 }
 
 .countdown-title {
@@ -288,13 +294,12 @@ html, body {
   }
 }
 
-
-
 /* Mobile responsive background scaling */
 @media (max-width: 720px) {
   .home-gradient {
     background-size: 100% auto;
     background-position: top center;
+    background-attachment: scroll;
   }
   
   .animated-gradient {
