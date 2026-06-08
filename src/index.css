@@ -257,13 +257,13 @@ html, body {
 
 @keyframes navbarGradientAnimation {
   0% {
-    background: linear-gradient(135deg, rgba(108, 54, 126, 0.6) 0%, rgba(68, 31, 82, 0.5) 100%);
+    background-position: 0% 50%;
   }
   50% {
-    background: linear-gradient(135deg, rgba(138, 74, 156, 0.8) 0%, rgba(98, 51, 112, 0.7) 100%);
+    background-position: 100% 50%;
   }
   100% {
-    background: linear-gradient(135deg, rgba(108, 54, 126, 0.6) 0%, rgba(68, 31, 82, 0.5) 100%);
+    background-position: 0% 50%;
   }
 }
 
@@ -299,7 +299,9 @@ html, body {
 }
 
 .navbar-glass {
-  animation: navbarGradientAnimation 3s ease-in-out infinite;
+  background: linear-gradient(90deg, rgba(88, 44, 106, 0.5), rgba(108, 54, 126, 0.6), rgba(88, 44, 106, 0.5));
+  background-size: 200% 100%;
+  animation: navbarGradientAnimation 4s ease-in-out infinite;
 }
 
 /* Entrance Animations */
