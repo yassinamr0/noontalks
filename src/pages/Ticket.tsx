@@ -6,6 +6,16 @@ import { toast } from 'sonner';
 import Navbar from "@/components/Navbar";
 import { loginUser } from "@/lib/api";
 
+const getResponsiveQRSize = () => {
+  const width = window.innerWidth;
+  // Drastically scaled down for mobile, normal size for desktop
+  if (width < 360) return 25; // Very small phones
+  if (width < 430) return 28; // Small phones
+  if (width < 480) return 32; // Medium phones
+  if (width < 768) return 38; // Large phones/small tablets
+  return 97; // Tablets and desktop
+};
+
 interface User {
   _id: string;
   name: string;
@@ -35,9 +45,19 @@ const getTicketImage = (ticketType?: string) => {
 
 export default function Ticket() {
   const [user, setUser] = useState<User | null>(null);
+  const [qrSize, setQrSize] = useState(getResponsiveQRSize());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const email = searchParams.get("email");
+
+  useEffect(() => {
+    const handleResize = () => {
+      setQrSize(getResponsiveQRSize());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -116,7 +136,7 @@ export default function Ticket() {
                   >
                     <QRCode
                       value={user.email}
-                      size={237}
+                      size={qrSize}
                       level="H"
                       includeMargin={false}
                       className="mx-auto"
