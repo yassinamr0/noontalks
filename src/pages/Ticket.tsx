@@ -8,12 +8,12 @@ import { loginUser } from "@/lib/api";
 
 const getResponsiveQRSize = () => {
   const width = window.innerWidth;
-  // Drastically scaled down for mobile, normal size for desktop
-  if (width < 360) return 25; // Very small phones
-  if (width < 430) return 28; // Small phones
-  if (width < 480) return 32; // Medium phones
-  if (width < 768) return 38; // Large phones/small tablets
-  return 97; // Tablets and desktop
+  // Large, scannable sizing for all devices
+  if (width < 360) return 140; // Very small phones
+  if (width < 430) return 150; // Small phones
+  if (width < 480) return 160; // Medium phones
+  if (width < 768) return 170; // Large phones/small tablets
+  return 237; // Tablets and desktop
 };
 
 interface User {
