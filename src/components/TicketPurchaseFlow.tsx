@@ -38,11 +38,11 @@ export default function TicketPurchaseFlow({ onComplete }: { onComplete: () => v
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       
       if (isAndroid) {
-        window.location.href = 'intent://ipn.eg/S/raniaabdullah/instapay/7nhZC2#Intent;scheme=https;S.browser_fallback_url=https://ipn.eg/S/raniaabdullah/instapay/7nhZC2;end';
+        window.location.href = 'intent://ipn.eg/S/nohamadel/instapay/3xZJxh#Intent;scheme=https;S.browser_fallback_url=https://ipn.eg/S/nohamadel/instapay/3xZJxh;end';
       } else if (isIOS) {
-        window.location.href = 'https://ipn.eg/S/raniaabdullah/instapay/7nhZC2';
+        window.location.href = 'https://ipn.eg/S/nohamadel/instapay/3xZJxh';
       } else {
-        window.open('https://ipn.eg/S/raniaabdullah/instapay/7nhZC2', '_blank');
+        window.open('https://ipn.eg/S/nohamadel/instapay/3xZJxh', '_blank');
       }
     }
   };

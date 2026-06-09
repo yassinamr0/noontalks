@@ -55,34 +55,61 @@ export default function Index() {
             </Button>
           </div>
 
-          {/* 4. Three Pictures Row - Horizontal on all devices */}
-          <div className="w-full max-w-6xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <div className="flex gap-4 w-full justify-center items-center flex-nowrap">
-              {/* Group Pic Left */}
-              <div className="flex-1 flex justify-center min-w-0">
-                <img 
-                  src="/grouppicleft.png" 
-                  alt="Group Pic Left" 
-                  className="w-full h-auto object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
-                />
-              </div>
+          {/* 4. Three Pictures Row - Horizontal Marquee */}
+          <div className="w-full animate-fade-in-up overflow-hidden" style={{ animationDelay: '0.3s' }}>
+            <div className="marquee-container">
+              <div className="marquee-track">
+                {/* Group Pic Left */}
+                <div className="marquee-item">
+                  <img 
+                    src="/grouppicleft.png" 
+                    alt="Group Pic Left" 
+                    className="marquee-image hover:scale-110 transition-transform duration-300 cursor-pointer"
+                  />
+                </div>
 
-              {/* Girls Pic Middle */}
-              <div className="flex-1 flex justify-center min-w-0">
-                <img 
-                  src="/girlspicmiddle.png" 
-                  alt="Girls Pic Middle" 
-                  className="w-full h-auto object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
-                />
-              </div>
+                {/* Girls Pic Middle */}
+                <div className="marquee-item">
+                  <img 
+                    src="/girlspicmiddle.png" 
+                    alt="Girls Pic Middle" 
+                    className="marquee-image hover:scale-110 transition-transform duration-300 cursor-pointer"
+                  />
+                </div>
 
-              {/* Boys Pic Right */}
-              <div className="flex-1 flex justify-center min-w-0">
-                <img 
-                  src="/boyspicright.png" 
-                  alt="Boys Pic Right" 
-                  className="w-full h-auto object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
-                />
+                {/* Boys Pic Right */}
+                <div className="marquee-item">
+                  <img 
+                    src="/boyspicright.png" 
+                    alt="Boys Pic Right" 
+                    className="marquee-image hover:scale-110 transition-transform duration-300 cursor-pointer"
+                  />
+                </div>
+
+                {/* Duplicate for seamless loop */}
+                <div className="marquee-item">
+                  <img 
+                    src="/grouppicleft.png" 
+                    alt="Group Pic Left" 
+                    className="marquee-image hover:scale-110 transition-transform duration-300 cursor-pointer"
+                  />
+                </div>
+
+                <div className="marquee-item">
+                  <img 
+                    src="/girlspicmiddle.png" 
+                    alt="Girls Pic Middle" 
+                    className="marquee-image hover:scale-110 transition-transform duration-300 cursor-pointer"
+                  />
+                </div>
+
+                <div className="marquee-item">
+                  <img 
+                    src="/boyspicright.png" 
+                    alt="Boys Pic Right" 
+                    className="marquee-image hover:scale-110 transition-transform duration-300 cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
           </div>
